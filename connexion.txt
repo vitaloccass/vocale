@@ -1,0 +1,5 @@
+DRIVER={ODBC Driver 17 for SQL Server}
+SERVER=localhost
+DATABASE=BIJOU
+UID=sa
+PWD=0000

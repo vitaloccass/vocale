@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="fr">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Facture vocale bilingue</title>
+        <link rel="stylesheet" href="/static/style.css">
+        <script src="/static/app.js"></script>
+    </head>
+
+    <body>
+        <div class="header">
+            <div class="user-info">
+                <span>👤 Connecté en tant que : <strong>{{ username }}</strong></span>
+            </div>
+            <h1 class="titre-facture">
+                <span class="icon">🧾</span>  FACTURE vocale 🎤
+            </h1>
+            <a href="{{ url_for('logout') }}" class="btn-logout">🚪 Déconnexion</a>
+        </div>
+        <br>
+        <div class="card">
+            <div class="horizontal">
+                <!--<h3>Nom tsena</h3>
+                <select id="mytsena" onchange="recup_code_tsena()" class="tsena">
+                    <option value="" disabled selected>Choisissez un nom</option>
+                    {% if correspondances %}
+                        {% for correspondance in correspondances %}
+                            <option value="{{ correspondance.code_tsena }}" depot="{{ correspondance.depot }}" affaire="{{ correspondance.affaire }}">
+                                {{ correspondance.nom_tsena }}
+                            </option>
+                        {% endfor %}
+                    {% else %}
+                        <option disabled>Aucun tsena disponible</option>
+                    {% endif %}
+                </select>-->
+
+                <!--<h3>Dépôt</h3>
+                <select id="mydepot">
+                    <option value="" disabled selected>Choisissez un dépôt</option>
+                    {% if depots %}
+                        {% for depot in depots %}
+                            <option value="{{ depot.id }}">{{ depot.name }}</option>
+                        {% endfor %}
+                    {% else %}
+                        <option disabled>Aucun dépot disponible</option>
+                    {% endif %}
+                </select>-->
+                
+                <div class="info">
+                    <p>Cette application est compatible avec Google Chrome</p>
+                    <strong>Guide d'utilisation :</strong><br>
+                    1- Cliquer sur <span style="color: red;">Commencer</span> pour la dictée<br>
+                    2- Pour le tsena : Dire <span style="color: red;">le code magasin </span> une seule fois par action <span style="color: green;">ex : MAGASIN 4 pour récupérer le code tsena correspondant</span> <br>
+                    3- Pour le client : Dire <span style="color: red;">le code client</span> <span style="color: green;">ex : CLIENT 4 pour récupérer le client correspondant</span> <br>
+                    4- Pour l'article : Dire <span style="color: red;">le code article</span> <span style="color: green;">ex : ARTICLE 4 pour récupérer la référence et la designation correspondante</span> <br>
+                    5- Pour la quantité : Dire <span style="color: red;">Quantité</span><br>
+                    6- Pour le PU : Dire <span style="color: red;">prix</span><br>
+                    7- Pour la remise : Dire <span style="color: red;">Remise</span><br><br>
+                    <span style="color: crimson; font-weight: bold;"> POUR UNE NOUVELLE LIGNE : Dire Ligne</span><br>
+                    Pour exporter : Dire <span style="color: blueviolet;">Exporter</span><br>
+                </div>
+
+            <div class="lines-container">
+                <button id="micBtn" class="btn-mic" onclick="toggleListening()">🎤 Commencer</button>
+                <h3>📌 Transcription :</h3>
+                <div id="transcript" style="background:#f3f4f6;padding:10px;border-radius:6px;">En attente…</div>
+
+                <br>
+                <label class="lblType" style="font-size:14px;">Type :</label>
+                <br>
+                <div class="table-responsive">
+                    <table class="lines-table">
+                        <thead>
+                        <tr style="font-size:14px;">
+                            <th>Numéro facture</th>
+                            <th>Date</th>
+                            <th>Code Tsena</th>
+                            <th>Nom client</th>
+                            <th>Réf article</th>
+                            <th style="text-align: center;">Nom article</th>
+                            <th style="text-align: center;">Qté</th>
+                            <th style="text-align: center;">PU</th>
+                            <th style="text-align: center;">Remise</th>
+                            <th style="text-align: center;">TTC</th>
+                            <th style="visibility: hidden;"></th>
+                            <th style="visibility: hidden;"></th>
+                            <th style="visibility: hidden;"></th>
+                        </tr>
+                        </thead>
+                        <tbody id="table-body">
+                        <tr class="ligne" style="font-size:14px;">
+                            <td contenteditable="true"></td>
+                            <td contenteditable="true" onfocus="init()"></td>
+                            <td></td>
+                            <td contenteditable="true"></td>
+                            <td contenteditable="true"></td>
+                            <td contenteditable="true"></td>
+                            <td contenteditable="true" oninput="calculerTTC()"></td>
+                            <td contenteditable="true" oninput="calculerTTC()"></td>
+                            <td contenteditable="true" oninput="calculerTTC()"></td>
+                            <td class="tot_ttc"></td>
+                            <td style="visibility: hidden;"></td>
+                            <td style="visibility: hidden;"></td>
+                            <td style="visibility: hidden;"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <button class="btn-download" onclick="exporterTXT()">📥 TXT</button>
+            <button class="btn-download" onclick="ajouterLigne()" style="visibility: hidden;">+</button>
+            <label class="lblmagasin" style="color:white"></label>
+            <label class="lbldepot" style="color:white"></label>
+            <label class="lblaffaire" style="color:white"></label>
+            <label class="lblnum_fact" style="color:white"></label>
+    </body>
+</html>

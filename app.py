@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify,send_from_directory
 from werkzeug.security import generate_password_hash, check_password_hash
 import pyodbc
 from datetime import datetime
@@ -7,9 +7,13 @@ from flask_login import login_required, current_user
 from flask import render_template
 import uuid
 import mysql.connector
+import os,io
 
 app = Flask(__name__)
 app.secret_key = "secret123"
+
+UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "Livraison")
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 def login_required(f):
     @wraps(f)
@@ -365,6 +369,33 @@ def get_correspondance():
         if conn is not None and conn.is_connected():
             conn.close()
 
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    print("test")
+    uploaded_file = request.files.get('file')
+    if not uploaded_file:
+        return "Aucun fichier reçu", 400
+
+    rec = request.form.get('rec', 'unknown')
+    nom_client = request.form.get('nom_client', 'unknown')
+    date_fact = request.form.get('date_fact', 'unknown')
+
+    # Nettoyer le nom du fichier
+    def clean(s):
+        return "".join(c if c.isalnum() else "_" for c in s)
+
+    filename = f"ACHAT_{clean(rec)}_{clean(nom_client)}_{clean(date_fact)}.txt"
+    file_path = os.path.join(UPLOAD_FOLDER, filename)
+
+    # Sauvegarder le fichier
+    uploaded_file.save(file_path)
+
+    return jsonify({"message": "Fichier enregistré", "path": f"/download/{filename}"})
+
+# Endpoint pour télécharger un fichier déjà enregistré
+@app.route('/download/<filename>')
+def download_file(filename):
+    return send_from_directory(UPLOAD_FOLDER, filename, as_attachment=True)
 
 
 if __name__ == "__main__":

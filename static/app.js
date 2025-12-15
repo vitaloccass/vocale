@@ -484,169 +484,73 @@ function calculerTTC(){
     });
 }
 
-/*function exporterTXT() {
+function clean(str) {
+    return str
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^\w.-]/g, "_");
+}
+
+function clean(str) {
+    return str.replace(/[^a-z0-9-_]/gi, '_');
+}
+
+function exporterTXT() {
     let trs = document.querySelectorAll("#table-body tr");
     let lines = [];
-
-    trs.forEach(tr => {
-        let tds = tr.querySelectorAll("td");
-        let nomClient="";
-        const lblMagasin = document.querySelector(".lblmagasin");
-        const rec = lblMagasin.innerText;
-        let dateFact="";
-
-        if (tds[3].innerText.trim() !== "") {
-            let numFact = tds[0].innerText.trim();
-            dateFact = tds[1].innerText.trim();
-            let tsena = tds[2].innerText.trim();
-            nomClient = tds[3].innerText.trim();
-            let ref = tds[4].innerText.trim();
-            let article = tds[5].innerText.trim();
-            let qte = tds[6].innerText.trim();
-            let pu = tds[7].innerText.trim();
-            let remise = tds[8].innerText.trim();
-            let ttc = tds[9].innerText.trim();
-            let f = 0;
-            let depot = tds[11].innerHTML;
-            let affaire = tds[12].innerHTML;
-            let g = 1;
-
-            let mtt = Number(qte) * Number(pu) * (1 - Number(remise)/100);
-
-            lines.push(
-                `0\t6\t${numFact}\t${dateFact}\t${tsena}\t${nomClient}\t${ref}\t${article}\t${qte}\t${pu}\t${mtt.toFixed(2)}\t${remise}\t${f}\t${depot}\t${affaire}\t${g}`
-            );
-        }
-    });
-
-    let blob = new Blob([lines.join("\n")], { type: "text/plain" });
-    let url = URL.createObjectURL(blob);
-
-    let a = document.createElement("a");
-    a.href = url;
-    a.download ="ACHAT"+"_"+rec+_+nomClient+"_"+dateFact+".txt";
-
-    // 🔥 Très important : on doit ajouter le lien au DOM pour mobile
-    document.body.appendChild(a);
-
-    a.click();       // simulate click
-    a.remove();      // remove link
-    URL.revokeObjectURL(url);
-}*/
-
-// Fonction pour enregistrer dans Google Drive
-async function exporterTXT() {
-    let trs = document.querySelectorAll("#table-body tr");
-    let lines = [];
-
-    trs.forEach(tr => {
-        let tds = tr.querySelectorAll("td");
-        let nomClient = "";
-        const lblMagasin = document.querySelector(".lblmagasin");
-        const rec = lblMagasin.innerText;
-        let dateFact = "";
-
-        if (tds[3].innerText.trim() !== "") {
-            let numFact = tds[0].innerText.trim();
-            dateFact = tds[1].innerText.trim();
-            let tsena = tds[2].innerText.trim();
-            nomClient = tds[3].innerText.trim();
-            let ref = tds[4].innerText.trim();
-            let article = tds[5].innerText.trim();
-            let qte = tds[6].innerText.trim();
-            let pu = tds[7].innerText.trim();
-            let remise = tds[8].innerText.trim();
-            let ttc = tds[9].innerText.trim();
-            let f = 0;
-            let depot = tds[11].innerHTML;
-            let affaire = tds[12].innerHTML;
-            let g = 1;
-
-            let mtt = Number(qte) * Number(pu) * (1 - Number(remise)/100);
-
-            lines.push(
-                `0\t6\t${numFact}\t${dateFact}\t${tsena}\t${nomClient}\t${ref}\t${article}\t${qte}\t${pu}\t${mtt.toFixed(2)}\t${remise}\t${f}\t${depot}\t${affaire}\t${g}`
-            );
-        }
-    });
 
     const lblMagasin = document.querySelector(".lblmagasin");
-    const rec = lblMagasin.innerText;
+    const rec = lblMagasin ? lblMagasin.innerText.trim() : "unknown";
     let nomClient = "";
     let dateFact = "";
-    
-    // Récupérer le premier client et date pour le nom du fichier
-    let firstTr = document.querySelector("#table-body tr");
-    if (firstTr) {
-        let firstTds = firstTr.querySelectorAll("td");
-        if (firstTds[3].innerText.trim() !== "") {
-            nomClient = firstTds[3].innerText.trim();
-            dateFact = firstTds[1].innerText.trim();
+
+    trs.forEach(tr => {
+        let tds = tr.querySelectorAll("td");
+        if (tds[3].innerText.trim() !== "") {
+            let numFact = tds[0].innerText.trim();
+            dateFact = tds[1].innerText.trim();
+            nomClient = tds[3].innerText.trim();
+            let tsena = tds[2].innerText.trim();
+            let ref = tds[4].innerText.trim();
+            let article = tds[5].innerText.trim();
+            let qte = tds[6].innerText.trim();
+            let pu = tds[7].innerText.trim();
+            let remise = tds[8].innerText.trim();
+            let depot = tds[11].innerHTML;
+            let affaire = tds[12].innerHTML;
+
+            let mtt = Number(qte) * Number(pu) * (1 - Number(remise)/100);
+
+            lines.push(
+                `0\t6\t${numFact}\t${dateFact}\t${tsena}\t${nomClient}\t${ref}\t${article}\t${qte}\t${pu}\t${mtt.toFixed(2)}\t${remise}\t0\t${depot}\t${affaire}\t1`
+            );
         }
-    }
-
-    const fileName = `ACHAT_${rec}_${nomClient}_${dateFact}.txt`;
-    const fileContent = lines.join("\n");
-
-    // Utiliser Google Picker API pour choisir le dossier
-    // Note: Vous devez avoir configuré l'API Google Drive au préalable
-    
-    try {
-        // Méthode 1: Avec Google Drive API
-        const metadata = {
-            name: fileName,
-            mimeType: 'text/plain'
-        };
-
-        const blob = new Blob([fileContent], { type: 'text/plain' });
-        const formData = new FormData();
-        formData.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
-        formData.append('file', blob);
-
-        const response = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-            method: 'POST',
-            headers: {
-                'Authorization': 'Bearer ' + gapi.auth.getToken().access_token
-            },
-            body: formData
-        });
-
-        if (response.ok) {
-            const result = await response.json();
-            alert(`Fichier enregistré avec succès dans Google Drive!\nID: ${result.id}`);
-            console.log('File saved:', result);
-        } else {
-            throw new Error('Échec de l\'enregistrement');
-        }
-    } catch (error) {
-        console.error('Erreur:', error);
-        alert('Erreur lors de l\'enregistrement dans Google Drive. Vérifiez que vous êtes connecté et que l\'API est configurée.');
-        
-        // Fallback: téléchargement local
-        let blob = new Blob([fileContent], { type: "text/plain" });
-        let url = URL.createObjectURL(blob);
-        let a = document.createElement("a");
-        a.href = url;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
-    }
-}
-
-// Configuration de l'API Google Drive (à placer dans votre HTML)
-function loadGoogleDriveAPI() {
-    gapi.load('client:auth2', initClient);
-}
-
-function initClient() {
-    gapi.client.init({
-        apiKey: 'VOTRE_API_KEY',
-        clientId: 'VOTRE_CLIENT_ID',
-        discoveryDocs: ['https://www.googleapis.com/discovery/v1/apis/drive/v3/rest'],
-        scope: 'https://www.googleapis.com/auth/drive.file'
-    }).then(() => {
-        console.log('Google Drive API prête');
     });
+
+    const content = lines.join("\n");
+    const filename = `ACHAT_${rec}_${nomClient}_${dateFact}.txt`;
+
+    // ✅ Création du blob **avant** de l’utiliser
+    const blob = new Blob([content], { type: "text/plain" });
+
+    const formData = new FormData();
+    formData.append("file", blob, filename);
+    formData.append("rec", rec);
+    formData.append("nom_client", nomClient);
+    formData.append("date_fact", dateFact);
+
+    fetch("/upload", { method: "POST", body: formData })
+        .then(response => response.blob())
+        .then(blob => {  // ce blob est différent du précédent, c'est la réponse du serveur
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+        })
+        .catch(err => console.error("Erreur upload:", err));
 }
+

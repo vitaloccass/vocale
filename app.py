@@ -1,12 +1,11 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify,send_from_directory
 from werkzeug.security import generate_password_hash, check_password_hash
-import pyodbc
+import sqlite3
 from datetime import datetime
 from functools import wraps
 from flask_login import login_required, current_user
 from flask import render_template
 import uuid
-import mysql.connector
 import os,io
 
 app = Flask(__name__)
@@ -14,6 +13,8 @@ app.secret_key = "secret123"
 
 UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "Livraison")
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+DB_PATH = os.path.join(os.path.dirname(__file__), "vocale.db")
 
 def login_required(f):
     @wraps(f)
@@ -77,46 +78,13 @@ def accueil():
         correspondances=correspondances,
     )
 
-def connecter_sql():
-    db_params = {}
-    config_file = 'connexion.txt'
-
-    try:
-        # 1. Lire le fichier et stocker les paramètres dans un dictionnaire
-        with open(config_file, 'r') as f:
-            for line in f:
-                # Ignorer les lignes vides ou celles qui ne sont pas des paires clé=valeur
-                if '=' in line:
-                    key, value = line.strip().split('=', 1)
-                    db_params[key.strip()] = value.strip()
-        
-        # 2. Vérifier que tous les champs nécessaires sont présents
-        if not all(k in db_params for k in ["DRIVER", "SERVER", "DATABASE", "UID", "PWD"]):
-            print("Erreur : Le fichier de configuration est incomplet.")
-            return None
-
-        # 3. Construire la chaîne de connexion
-        connection_string = (
-            f"DRIVER={db_params['DRIVER']};"
-            f"SERVER={db_params['SERVER']};"
-            f"DATABASE={db_params['DATABASE']};"
-            f"UID={db_params['UID']};"
-            f"PWD={db_params['PWD']};"
-        )
-        
-        # 4. Connexion
-        conn = pyodbc.connect(connection_string)
-        return conn
-    
-    except FileNotFoundError:
-        print(f"Erreur : Le fichier de configuration '{config_file}' est introuvable.")
-        return None
-    except pyodbc.Error as ex:
-        print(f"Erreur de connexion SQL: {ex}")
-        return None
+def connecter_sqlite():
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row  # accès par nom de colonne
+    return conn
 
 def lister_depot():
-    conn = connecter_sql()
+    conn = connecter_sqlite()
     depot_list = []
     
     try:
@@ -146,6 +114,7 @@ def lister_depot():
             conn.close()
 
     return depot_list
+
 @app.route('/get_client', methods=['GET'])
 def get_client():
     # Récupération du paramètre code
@@ -153,41 +122,23 @@ def get_client():
     if not code:
         return jsonify({"nom": ""})
 
-    conn = None
-    try:
-        # Connexion MySQL
-        conn = mysql.connector.connect(
-            host="localhost",   # ou db_params['SERVER'] si config
-            user="root",
-            password="",
-            database="vocale"
-        )
+    conn = connecter_sqlite()
+    cursor = conn.cursor(dictionary=True)  # dictionnaire pour fetchone
 
-        cursor = conn.cursor(dictionary=True)  # dictionnaire pour fetchone
+    # Normalisation du code : majuscules + enlever espaces
+    code_modifie = code.strip().upper().replace(' ', '')
+    
 
-        
-        # Normalisation du code : majuscules + enlever espaces
-        code_modifie = code.strip().upper().replace(' ', '')
-        
+    cursor.execute(
+        "SELECT nom_client FROM correspondance_client WHERE code=%s",
+        (code_modifie,)
+    )
 
-        cursor.execute(
-            "SELECT nom_client FROM correspondance_client WHERE code=%s",
-            (code_modifie,)
-        )
-
-        row = cursor.fetchone()
-        if row:
-            return jsonify({"nom": row["nom_client"]})
-        else:
-            return jsonify({"nom": ""})
-
-    except mysql.connector.Error as e:
-        print(f"[Erreur MySQL] {e}")
+    row = cursor.fetchone()
+    if row:
+        return jsonify({"nom": row["nom_client"]})
+    else:
         return jsonify({"nom": ""})
-
-    finally:
-        if conn and conn.is_connected():
-            conn.close()
 
 @app.route('/get_article', methods=['GET'])
 def get_article():
@@ -199,50 +150,28 @@ def get_article():
             "designation": ""
         })
 
-    conn = None
-    try:
-        # Connexion MySQL
-        conn = mysql.connector.connect(
-            host="localhost",   # ou db_params['SERVER'] si config
-            user="root",
-            password="",
-            database="vocale"
-        )
+    conn = connecter_sqlite()
+    cursor = conn.cursor(dictionary=True)  # dictionnaire pour fetchone
 
-        cursor = conn.cursor(dictionary=True)  # dictionnaire pour fetchone
+    # Normalisation du code : majuscules + enlever espaces
+    code_modifie = code.strip().upper().replace(' ', '')
+    
+    cursor.execute(
+        "SELECT reference,designation FROM correspondance_article WHERE code=%s",
+        (code_modifie,)
+    )
 
-        
-        # Normalisation du code : majuscules + enlever espaces
-        code_modifie = code.strip().upper().replace(' ', '')
-        
-        cursor.execute(
-            "SELECT reference,designation FROM correspondance_article WHERE code=%s",
-            (code_modifie,)
-        )
-
-        row = cursor.fetchone()
-        if row:
-            return jsonify({
-                "reference": row["reference"],
-                "designation": row["designation"]
-            })
-        else:
-            return jsonify({
-                "reference": "",
-                "designation": ""
-            })
-
-    except mysql.connector.Error as e:
-        print(f"[Erreur MySQL] {e}")
+    row = cursor.fetchone()
+    if row:
+        return jsonify({
+            "reference": row["reference"],
+            "designation": row["designation"]
+        })
+    else:
         return jsonify({
             "reference": "",
             "designation": ""
         })
-
-    finally:
-        if conn and conn.is_connected():
-            conn.close()
-
 @app.route('/get_tsena', methods=['GET'])
 def get_tsena():
     # Récupération du paramètre code
@@ -255,119 +184,68 @@ def get_tsena():
             "num_fact":""
         })
 
-    conn = None
-    try:
-        # Connexion MySQL
-        conn = mysql.connector.connect(
-            host="localhost",   # ou db_params['SERVER'] si config
-            user="root",
-            password="",
-            database="vocale"
-        )
+    conn = connecter_sqlite()
+    cursor = conn.cursor(dictionary=True)  # dictionnaire pour fetchone
 
-        cursor = conn.cursor(dictionary=True)  # dictionnaire pour fetchone
+    
+    # Normalisation du code : majuscules + enlever espaces
+    code_modifie = code.strip().upper().replace(' ', '')
+    
+    cursor.execute(
+        "SELECT code_tsena,depot,affaire FROM correspondance WHERE code=%s",
+        (code_modifie,)
+    )
 
-        
-        # Normalisation du code : majuscules + enlever espaces
-        code_modifie = code.strip().upper().replace(' ', '')
-        
-        cursor.execute(
-            "SELECT code_tsena,depot,affaire FROM correspondance WHERE code=%s",
-            (code_modifie,)
-        )
+    row = cursor.fetchone()
 
-        row = cursor.fetchone()
-
-        # ✅ Vérification OBLIGATOIRE
-        if not row:
-            return jsonify({
-                "code_tsena": "",
-                "depot": "",
-                "affaire": "",
-                "num_fact": ""
-            })
-
-        # ----- génération num_fact -----
-        base_date = datetime.now()
-        jour = base_date.day
-        mois = base_date.month
-        short_year = str(base_date.year)[-2:]
-
-        # nettoyage depot
-        t = row["depot"].replace("DP", "").lstrip("0")
-        jour_clean = str(jour).lstrip("0")
-
-        num_fact = f"{t}FA{jour_clean}{mois}{short_year}"
-
-        # ✅ UN SEUL DICTIONNAIRE JSON
-        return jsonify({
-            "code_tsena": row.get("code_tsena", ""),
-            "depot": row.get("depot", ""),
-            "affaire": row.get("affaire", ""),
-            "num_fact": num_fact
-        })
-        
-    except mysql.connector.Error as e:
-        print(f"[Erreur MySQL] {e}")
+    # ✅ Vérification OBLIGATOIRE
+    if not row:
         return jsonify({
             "code_tsena": "",
             "depot": "",
             "affaire": "",
-            "num_fact":""
+            "num_fact": ""
         })
 
-    finally:
-        if conn and conn.is_connected():
-            conn.close()
+    # ----- génération num_fact -----
+    base_date = datetime.now()
+    jour = base_date.day
+    mois = base_date.month
+    short_year = str(base_date.year)[-2:]
 
-def get_correspondance():
-    config_file = 'connexion.txt'
-    db_params = {}
-    conn = None  # <==== AJOUT IMPORTANT
-  
-    try:
-        with open(config_file, 'r') as f:
-            for line in f:
-                if '=' in line:
-                    key, value = line.strip().split('=', 1)
-                    db_params[key.strip()] = value.strip()
+    # nettoyage depot
+    t = row["depot"].replace("DP", "").lstrip("0")
+    jour_clean = str(jour).lstrip("0")
+
+    num_fact = f"{t}FA{jour_clean}{mois}{short_year}"
+
+    # ✅ UN SEUL DICTIONNAIRE JSON
+    return jsonify({
+        "code_tsena": row.get("code_tsena", ""),
+        "depot": row.get("depot", ""),
+        "affaire": row.get("affaire", ""),
+        "num_fact": num_fact
+    })
         
-        if "SERVER" not in db_params:
-            print("Erreur : Le fichier de configuration est incomplet.")
-            return []
+def get_correspondance():
+    conn = connecter_sqlite()
+    cursor = conn.cursor()
+    cursor.execute("SELECT * FROM correspondance ORDER BY nom_tsena ASC")
 
-        conn = mysql.connector.connect(
-            host=db_params['SERVER'],
-            user="root",
-            password="",
-            database="vocale"
-        )
+    rows = cursor.fetchall()
+    result = []
 
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM correspondance ORDER BY nom_tsena ASC")
-
-        rows = cursor.fetchall()
-        result = []
-
-        if rows:
-            columns = [col[0] for col in cursor.description]
-            for row in rows:
-                row_dict = dict(zip(columns, row))
-                result.append({
-                    "nom_tsena": row_dict.get("nom_tsena"),
-                    "code_tsena": row_dict.get("code_tsena"),
-                    "depot": row_dict.get("depot"),
-                    "affaire": row_dict.get("affaire")
-                })
-        return result
-
-    except mysql.connector.Error as e:
-        print(f"[Erreur MySQL] {e}")
-        return []
-
-    finally:
-        if conn is not None and conn.is_connected():
-            conn.close()
+    if rows:
+        columns = [col[0] for col in cursor.description]
+        for row in rows:
+            row_dict = dict(zip(columns, row))
+            result.append({
+                "nom_tsena": row_dict.get("nom_tsena"),
+                "code_tsena": row_dict.get("code_tsena"),
+                "depot": row_dict.get("depot"),
+                "affaire": row_dict.get("affaire")
+            })
+    return result
 
 @app.route('/upload', methods=['POST'])
 def upload_file():

@@ -7,23 +7,19 @@ from flask_login import login_required, current_user
 from flask import render_template
 import uuid
 import os,io
+from google.oauth2.credentials import Credentials
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaFileUpload
+from google_auth_oauthlib.flow import InstalledAppFlow
+from google.auth.transport.requests import Request
+from googleapiclient.http import MediaIoBaseUpload
+import pickle
 
 app = Flask(__name__)
 app.secret_key = "secret123"
 
-UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "Livraison")
-os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
 DB_PATH = os.path.join(os.path.dirname(__file__), "vocale.db")
-
-SERVICE_ACCOUNT_FILE = "credentials.json"
 SCOPES = ['https://www.googleapis.com/auth/drive.file']
-
-credentials = service_account.Credentials.from_service_account_file(
-    SERVICE_ACCOUNT_FILE, scopes=SCOPES
-)
-
-drive_service = build('drive', 'v3', credentials=credentials)
 
 def login_required(f):
     @wraps(f)
@@ -100,6 +96,7 @@ def get_client():
 
     # Normalisation du code : majuscules + enlever espaces
     code_modifie = code.strip().upper().replace(' ', '')
+    
 
     cursor.execute(
         "SELECT nom_client FROM correspondance_client WHERE code=?",
@@ -107,8 +104,6 @@ def get_client():
     )
 
     row = cursor.fetchone()
-    conn.close()
-
     if row:
         return jsonify({"nom": row["nom_client"]})
     else:
@@ -196,43 +191,166 @@ def get_tsena():
         "affaire": row["affaire"],
         "num_fact": num_fact
     })
- 
+def get_drive_service():
+    """
+    Authentifie l'utilisateur et retourne le service Google Drive
+    """
+    creds = None
+    
+    # Charger le token sauvegardé si disponible
+    if os.path.exists('token.pickle'):
+        with open('token.pickle', 'rb') as token:
+            creds = pickle.load(token)
+    
+    # Si pas de credentials valides, demander l'authentification
+    if not creds or not creds.valid:
+        if creds and creds.expired and creds.refresh_token:
+            print("🔄 Rafraîchissement du token...")
+            creds.refresh(Request())
+        else:
+            print("🔐 Première connexion - Une fenêtre de navigateur va s'ouvrir...")
+            if not os.path.exists('credentials.json'):
+                raise FileNotFoundError(
+                    "❌ Fichier 'credentials.json' non trouvé!\n"
+                    "Téléchargez-le depuis Google Cloud Console et placez-le dans ce dossier."
+                )
+            
+            flow = InstalledAppFlow.from_client_secrets_file(
+                'credentials.json', SCOPES)
+            creds = flow.run_local_server(port=0)
+            print("✅ Authentification réussie!")
+        
+        # Sauvegarder le token pour les prochaines utilisations
+        with open('token.pickle', 'wb') as token:
+            pickle.dump(creds, token)
+            print("💾 Token sauvegardé dans token.pickle")
+    
+    return build('drive', 'v3', credentials=creds)
+
+def upload_to_drive(file_content, filename, folder_id=None, mime_type='text/plain'):
+    """
+    Upload un fichier sur Google Drive
+    
+    Args:
+        file_content: Contenu du fichier (bytes)
+        filename: Nom du fichier
+        folder_id: ID du dossier cible (optionnel)
+        mime_type: Type MIME du fichier
+    
+    Returns:
+        tuple: (file_id, web_link)
+    """
+    try:
+        service = get_drive_service()
+        
+        file_metadata = {'name': filename}
+        
+        # Si un dossier spécifique est défini
+        if folder_id:
+            file_metadata['parents'] = [folder_id]
+        
+        # Créer le média à uploader
+        fh = io.BytesIO(file_content)
+        media = MediaIoBaseUpload(fh, mimetype=mime_type, resumable=True)
+        
+        # Uploader le fichier
+        print(f"📤 Upload de '{filename}' sur Google Drive...")
+        file = service.files().create(
+            body=file_metadata,
+            media_body=media,
+            fields='id, name, webViewLink, createdTime'
+        ).execute()
+        
+        print(f"✅ Fichier uploadé avec succès!")
+        print(f"   ID: {file.get('id')}")
+        print(f"   Lien: {file.get('webViewLink')}")
+        
+        return file.get('id'), file.get('webViewLink')
+    
+    except Exception as e:
+        print(f"❌ Erreur lors de l'upload sur Drive: {str(e)}")
+        raise
+
 @app.route('/upload', methods=['POST'])
 def upload_file():
-   uploaded_file = request.files.get('file')
-    if not uploaded_file:
-        return "Aucun fichier reçu", 400
+    """
+    Route Flask pour uploader un fichier
+    """
+    try:
+        # Récupérer le fichier
+        uploaded_file = request.files.get('file')
+        if not uploaded_file:
+            return jsonify({"error": "Aucun fichier reçu"}), 400
 
-    rec = request.form.get('rec', 'unknown')
-    nom_client = request.form.get('nom_client', 'unknown')
-    date_fact = request.form.get('date_fact', 'unknown')
+        # Récupérer les métadonnées
+        rec = request.form.get('rec', 'unknown')
+        recs = request.form.get('recs', 'unknown')
+        nom_client = request.form.get('nom_client', 'unknown')
+        date_fact = request.form.get('date_fact', 'unknown')
 
-    # Nettoyer le nom du fichier
-    def clean(s):
-        return "".join(c if c.isalnum() else "_" for c in s)
+        # Nettoyer le nom du fichier
+        def clean(s):
+            return "".join(c if c.isalnum() or c in (' ', '-', '_') else "_" for c in s)
 
-    filename = f"{clean(rec)}_{clean(nom_client)}_{clean(date_fact)}.txt"
+        # Générer le nom du fichier
+        if "vente" in recs.lower():
+            filename = f"VENTE_{clean(rec)}_{clean(nom_client)}_{clean(date_fact)}.txt"
+        else:
+            filename = f"ACHAT_{clean(rec)}_{clean(nom_client)}_{clean(date_fact)}.txt"
 
-    # Convertir le fichier en objet IO
-    file_stream = io.BytesIO(uploaded_file.read())
-    media = MediaIoBaseUpload(file_stream, mimetype='text/plain', resumable=True)
+        print(f"\n{'='*60}")
+        print(f"📝 Nouveau fichier à uploader: {filename}")
+        print(f"   Type: {recs}")
+        print(f"   Client: {nom_client}")
+        print(f"   Date: {date_fact}")
+        print(f"{'='*60}")
 
-    file_metadata = {
-        'name': filename,
-        # 'parents': ['ID_DU_DOSSIER']  # facultatif : mettre l’ID du dossier Drive
-    }
+        # Lire le contenu du fichier
+        file_content = uploaded_file.read()
+        
+        # Upload sur Google Drive
+        # OPTIONNEL: Remplacez None par l'ID d'un dossier spécifique
+        folder_id = None  # Ex: '1a2b3c4d5e6f7g8h9i0j'
+        file_id, web_link = upload_to_drive(
+            file_content, 
+            filename, 
+            folder_id=folder_id
+        )
 
-    # Upload sur Google Drive
-    file = drive_service.files().create(
-        body=file_metadata,
-        media_body=media,
-        fields='id'
-    ).execute()
+        return jsonify({
+            "success": True,
+            "message": "Fichier enregistré sur Google Drive",
+            "filename": filename,
+            "file_id": file_id,
+            "link": web_link
+        }), 200
 
-    return jsonify({
-        "message": "Fichier enregistré sur Google Drive",
-        "file_id": file.get('id')
-    })
+    except FileNotFoundError as e:
+        print(f"❌ {str(e)}")
+        return jsonify({"error": str(e)}), 500
+    
+    except Exception as e:
+        print(f"❌ Erreur: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": f"Erreur serveur: {str(e)}"}), 500
+
+@app.route('/')
+def index():
+    return "Serveur OCR actif"
+
+if __name__ == '__main__':
+    print("\n" + "="*60)
+    print("🚀 Démarrage du serveur Flask...")
+    print("="*60 + "\n")
+    
+    # Vérifier la présence de credentials.json
+    if not os.path.exists('credentials.json'):
+        print("⚠️  ATTENTION: credentials.json non trouvé!")
+        print("   Téléchargez-le depuis Google Cloud Console")
+        print("   et placez-le dans: D:\\Arbiochem\\Mahefa\\OCR\\en cours\\\n")
+    
+    app.run(debug=True, port=5000)
 
 # Endpoint pour télécharger un fichier déjà enregistré
 @app.route('/download/<filename>')

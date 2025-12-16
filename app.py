@@ -371,12 +371,12 @@ def get_correspondance():
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    print("test")
     uploaded_file = request.files.get('file')
     if not uploaded_file:
         return "Aucun fichier reçu", 400
 
     rec = request.form.get('rec', 'unknown')
+    recs = request.form.get('recs', 'unknown')
     nom_client = request.form.get('nom_client', 'unknown')
     date_fact = request.form.get('date_fact', 'unknown')
 
@@ -384,7 +384,11 @@ def upload_file():
     def clean(s):
         return "".join(c if c.isalnum() else "_" for c in s)
 
-    filename = f"ACHAT_{clean(rec)}_{clean(nom_client)}_{clean(date_fact)}.txt"
+    if "vente" in recs.lower():
+        filename = f"VENTE_{clean(rec)}_{clean(nom_client)}_{clean(date_fact)}.txt"
+    else:
+        filename = f"ACHAT_{clean(rec)}_{clean(nom_client)}_{clean(date_fact)}.txt"
+
     file_path = os.path.join(UPLOAD_FOLDER, filename)
 
     # Sauvegarder le fichier

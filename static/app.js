@@ -80,9 +80,24 @@ function traiterCommande(transcript) {
         
 
     if(cmd=="ligne" || cmd=="lignes"){
-         ajouterLigne();
+        ajouterLigne();
+    }else if (cmd.toLowerCase().includes("vente") || cmd.toLowerCase().includes("achat")) {
+        console.log("CMD =", cmd);
+
+        const lbltype = document.querySelector(".lblType");
+        console.log("LBL =", lbltype);
+
+        const typeMatch = cmd.toLowerCase().match(/\b\s*(achat|vente)\b/i);
+        console.log("MATCH =", typeMatch);
+
+        if (lbltype && typeMatch) {
+            lbltype.innerText = "Type : " + typeMatch[1];
+            cmd.innerHTML="";
+        }
     }else if(cmd=="exporter"){
-         exporterTXT();
+        exporterTXT();
+    }else if(cmd=="nouvelle"){
+        reinitialiser();
     }else if(cmd.includes("magasin") || cmd.includes("magasins")){
         const magasinMatch = cmd.match(/\magasins?\s*(\d+)\b/i);
         const code = "MAGASIN" + magasinMatch[1];
@@ -287,6 +302,37 @@ function recup_client(code, callback) {
     fetch(`/get_client?code=${encodeURIComponent(code)}`)
         .then(r => r.json())
         .then(data => callback(data.nom || ""));
+}
+
+function reinitialiser(){
+    // Réinitialiser le label
+    const lbltype = document.querySelector(".lblType");
+    lbltype.innerHTML = "Type :";
+
+    // Réinitialiser le tableau
+    const tableBody = document.getElementById("table-body");
+    tableBody.innerHTML = ""; // vide toutes les lignes existantes
+
+    // Créer une nouvelle ligne vide
+    const nouvelleLigne = document.createElement("tr");
+    nouvelleLigne.classList.add("ligne");
+    nouvelleLigne.style.fontSize = "14px";
+
+    // Ajouter les 13 cellules comme dans ton HTML
+    for (let i = 0; i < 13; i++) {
+        const td = document.createElement("td");
+
+        // rendre certaines cellules éditables
+        if ([0,1,3,4,5,6,7,8].includes(i)) td.contentEditable = "true";
+        if (i === 1) td.setAttribute("onfocus", "init()");
+        if ([6,7,8].includes(i)) td.setAttribute("oninput", "calculerTTC()");
+        if (i === 9) td.classList.add("tot_ttc");
+        if ([10,11,12].includes(i)) td.style.visibility = "hidden";
+
+        nouvelleLigne.appendChild(td);
+    }
+
+    tableBody.appendChild(nouvelleLigne);
 }
 
 function recup_code_tsena(code, callback) {
@@ -500,7 +546,9 @@ function exporterTXT() {
     let lines = [];
 
     const lblMagasin = document.querySelector(".lblmagasin");
+    const lbltype = document.querySelector(".lblType");
     const rec = lblMagasin ? lblMagasin.innerText.trim() : "unknown";
+    const recs = lbltype ? lbltype.innerText.trim() : "unknown";
     let nomClient = "";
     let dateFact = "";
 
@@ -521,14 +569,26 @@ function exporterTXT() {
 
             let mtt = Number(qte) * Number(pu) * (1 - Number(remise)/100);
 
-            lines.push(
-                `0\t6\t${numFact}\t${dateFact}\t${tsena}\t${nomClient}\t${ref}\t${article}\t${qte}\t${pu}\t${mtt.toFixed(2)}\t${remise}\t0\t${depot}\t${affaire}\t1`
-            );
+            if (recs.includes("vente")){
+                lines.push(
+                    `0\t7\t${numFact}\t${dateFact}\t${tsena}\t${nomClient}\t${ref}\t${article}\t${qte}\t${pu}\t${mtt.toFixed(2)}\t${remise}\t0\t${depot}\t${affaire}\t1`
+                );
+            }else{
+                lines.push(
+                    `0\t6\t${numFact}\t${dateFact}\t${tsena}\t${nomClient}\t${ref}\t${article}\t${qte}\t${pu}\t${mtt.toFixed(2)}\t${remise}\t0\t${depot}\t${affaire}\t1`
+                );
+            }
         }
     });
 
     const content = lines.join("\n");
-    const filename = `ACHAT_${rec}_${nomClient}_${dateFact}.txt`;
+    let filename ='';
+
+    if (recs.includes("vente")){
+        filename = `VENTE_${rec}_${nomClient}_${dateFact}.txt`;
+    }else{
+        filename = `ACHAT_${rec}_${nomClient}_${dateFact}.txt`;
+    }
 
     // ✅ Création du blob **avant** de l’utiliser
     const blob = new Blob([content], { type: "text/plain" });
@@ -536,6 +596,7 @@ function exporterTXT() {
     const formData = new FormData();
     formData.append("file", blob, filename);
     formData.append("rec", rec);
+    formData.append("recs", recs);
     formData.append("nom_client", nomClient);
     formData.append("date_fact", dateFact);
 

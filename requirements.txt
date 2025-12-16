@@ -1,3 +1,5 @@
-Flask==3.0.3
-flask-login
+Flask
 gunicorn
+google-auth
+google-auth-oauthlib
+google-api-python-client

@@ -67,53 +67,17 @@ def milliers(value):
 @app.route("/")
 @login_required
 def accueil():
-    correspondances=get_correspondance()
-    depots = lister_depot()
     username = session.get('username', 'Invité')
     return render_template(
         'index.html',
         date=datetime.now().strftime('%Y-%m-%d'),
-        depots=depots, 
         username=username,
-        correspondances=correspondances,
     )
 
 def connecter_sqlite():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row  # accès par nom de colonne
     return conn
-
-def lister_depot():
-    conn = connecter_sqlite()
-    depot_list = []
-    
-    try:
-        cursor = conn.cursor()
-
-        query = """
-            SELECT
-                DISTINCT DE_No,DE_Intitule 
-            FROM F_DEPOT
-            ORDER BY DE_No ASC
-        """
-
-        cursor.execute(query)
-
-        for row in cursor.fetchall():
-            depot_list.append({
-                'id': row[0],
-                'name': row[1]
-            })
-
-    except Exception as e:
-        print(f"Erreur lors de la récupération des dépots : {e}")
-        return []
-
-    finally:
-        if conn:
-            conn.close()
-
-    return depot_list
 
 @app.route('/get_client', methods=['GET'])
 def get_client():
@@ -123,11 +87,10 @@ def get_client():
         return jsonify({"nom": ""})
 
     conn = connecter_sqlite()
-    cursor = conn.cursor(dictionary=True)  # dictionnaire pour fetchone
+    cursor = conn.cursor()
 
     # Normalisation du code : majuscules + enlever espaces
     code_modifie = code.strip().upper().replace(' ', '')
-    
 
     cursor.execute(
         "SELECT nom_client FROM correspondance_client WHERE code=?",
@@ -135,6 +98,8 @@ def get_client():
     )
 
     row = cursor.fetchone()
+    conn.close()
+
     if row:
         return jsonify({"nom": row["nom_client"]})
     else:
@@ -142,64 +107,59 @@ def get_client():
 
 @app.route('/get_article', methods=['GET'])
 def get_article():
-    # Récupération du paramètre code
-    code = request.args.get('code', '')
+   code = request.args.get('code', '')
     if not code:
-        return jsonify({
-            "reference": "",
-            "designation": ""
-        })
+        return jsonify({"reference": "", "designation": ""})
 
     conn = connecter_sqlite()
-    cursor = conn.cursor(dictionary=True)  # dictionnaire pour fetchone
+    cursor = conn.cursor()
 
-    # Normalisation du code : majuscules + enlever espaces
+    # Normalisation
     code_modifie = code.strip().upper().replace(' ', '')
-    
+
     cursor.execute(
-        "SELECT reference,designation FROM correspondance_article WHERE code=?",
+        "SELECT reference, designation FROM correspondance_article WHERE code=?",
         (code_modifie,)
     )
 
     row = cursor.fetchone()
+    conn.close()
+
     if row:
         return jsonify({
             "reference": row["reference"],
             "designation": row["designation"]
         })
     else:
-        return jsonify({
-            "reference": "",
-            "designation": ""
-        })
+        return jsonify({"reference": "", "designation": ""})
 
 @app.route('/get_tsena', methods=['GET'])
 def get_tsena():
-    # Récupération du paramètre code
+     # Récupération du paramètre code
     code = request.args.get('code', '')
     if not code:
         return jsonify({
             "code_tsena": "",
             "depot": "",
             "affaire": "",
-            "num_fact":""
+            "num_fact": ""
         })
 
     conn = connecter_sqlite()
-    cursor = conn.cursor(dictionary=True)  # dictionnaire pour fetchone
+    cursor = conn.cursor()
 
-    
     # Normalisation du code : majuscules + enlever espaces
     code_modifie = code.strip().upper().replace(' ', '')
-    
+
     cursor.execute(
-        "SELECT code_tsena,depot,affaire FROM correspondance WHERE code=?",
+        "SELECT code_tsena, depot, affaire FROM correspondance WHERE code=?",
         (code_modifie,)
     )
 
     row = cursor.fetchone()
+    conn.close()
 
-    # ✅ Vérification OBLIGATOIRE
+    # Vérification obligatoire
     if not row:
         return jsonify({
             "code_tsena": "",
@@ -220,34 +180,14 @@ def get_tsena():
 
     num_fact = f"{t}FA{jour_clean}{mois}{short_year}"
 
-    # ✅ UN SEUL DICTIONNAIRE JSON
+    # Retour JSON
     return jsonify({
-        "code_tsena": row.get("code_tsena", ""),
-        "depot": row.get("depot", ""),
-        "affaire": row.get("affaire", ""),
+        "code_tsena": row["code_tsena"],
+        "depot": row["depot"],
+        "affaire": row["affaire"],
         "num_fact": num_fact
     })
-        
-def get_correspondance():
-    conn = connecter_sqlite()
-    cursor = conn.cursor()
-    cursor.execute("SELECT * FROM correspondance ORDER BY nom_tsena ASC")
-
-    rows = cursor.fetchall()
-    result = []
-
-    if rows:
-        columns = [col[0] for col in cursor.description]
-        for row in rows:
-            row_dict = dict(zip(columns, row))
-            result.append({
-                "nom_tsena": row_dict.get("nom_tsena"),
-                "code_tsena": row_dict.get("code_tsena"),
-                "depot": row_dict.get("depot"),
-                "affaire": row_dict.get("affaire")
-            })
-    return result
-
+ 
 @app.route('/upload', methods=['POST'])
 def upload_file():
     uploaded_file = request.files.get('file')

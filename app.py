@@ -130,7 +130,7 @@ def get_client():
     
 
     cursor.execute(
-        "SELECT nom_client FROM correspondance_client WHERE code=%s",
+        "SELECT nom_client FROM correspondance_client WHERE code=?",
         (code_modifie,)
     )
 
@@ -157,7 +157,7 @@ def get_article():
     code_modifie = code.strip().upper().replace(' ', '')
     
     cursor.execute(
-        "SELECT reference,designation FROM correspondance_article WHERE code=%s",
+        "SELECT reference,designation FROM correspondance_article WHERE code=?",
         (code_modifie,)
     )
 
@@ -172,6 +172,7 @@ def get_article():
             "reference": "",
             "designation": ""
         })
+
 @app.route('/get_tsena', methods=['GET'])
 def get_tsena():
     # Récupération du paramètre code
@@ -192,7 +193,7 @@ def get_tsena():
     code_modifie = code.strip().upper().replace(' ', '')
     
     cursor.execute(
-        "SELECT code_tsena,depot,affaire FROM correspondance WHERE code=%s",
+        "SELECT code_tsena,depot,affaire FROM correspondance WHERE code=?",
         (code_modifie,)
     )
 

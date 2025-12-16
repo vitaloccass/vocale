@@ -107,7 +107,7 @@ def get_client():
 
 @app.route('/get_article', methods=['GET'])
 def get_article():
-   code = request.args.get('code', '')
+    code = request.args.get('code', '')
     if not code:
         return jsonify({"reference": "", "designation": ""})
 

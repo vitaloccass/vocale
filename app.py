@@ -16,6 +16,15 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "vocale.db")
 
+SERVICE_ACCOUNT_FILE = "credentials.json"
+SCOPES = ['https://www.googleapis.com/auth/drive.file']
+
+credentials = service_account.Credentials.from_service_account_file(
+    SERVICE_ACCOUNT_FILE, scopes=SCOPES
+)
+
+drive_service = build('drive', 'v3', credentials=credentials)
+
 def login_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):
@@ -190,12 +199,11 @@ def get_tsena():
  
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    uploaded_file = request.files.get('file')
+   uploaded_file = request.files.get('file')
     if not uploaded_file:
         return "Aucun fichier reçu", 400
 
     rec = request.form.get('rec', 'unknown')
-    recs = request.form.get('recs', 'unknown')
     nom_client = request.form.get('nom_client', 'unknown')
     date_fact = request.form.get('date_fact', 'unknown')
 
@@ -203,17 +211,28 @@ def upload_file():
     def clean(s):
         return "".join(c if c.isalnum() else "_" for c in s)
 
-    if "vente" in recs.lower():
-        filename = f"VENTE_{clean(rec)}_{clean(nom_client)}_{clean(date_fact)}.txt"
-    else:
-        filename = f"ACHAT_{clean(rec)}_{clean(nom_client)}_{clean(date_fact)}.txt"
+    filename = f"{clean(rec)}_{clean(nom_client)}_{clean(date_fact)}.txt"
 
-    file_path = os.path.join(UPLOAD_FOLDER, filename)
+    # Convertir le fichier en objet IO
+    file_stream = io.BytesIO(uploaded_file.read())
+    media = MediaIoBaseUpload(file_stream, mimetype='text/plain', resumable=True)
 
-    # Sauvegarder le fichier
-    uploaded_file.save(file_path)
+    file_metadata = {
+        'name': filename,
+        # 'parents': ['ID_DU_DOSSIER']  # facultatif : mettre l’ID du dossier Drive
+    }
 
-    return jsonify({"message": "Fichier enregistré", "path": f"/download/{filename}"})
+    # Upload sur Google Drive
+    file = drive_service.files().create(
+        body=file_metadata,
+        media_body=media,
+        fields='id'
+    ).execute()
+
+    return jsonify({
+        "message": "Fichier enregistré sur Google Drive",
+        "file_id": file.get('id')
+    })
 
 # Endpoint pour télécharger un fichier déjà enregistré
 @app.route('/download/<filename>')

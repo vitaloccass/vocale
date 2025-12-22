@@ -43,23 +43,87 @@ def milliers(value):
     except:
         return value
 
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if request.method == "POST":
+        username = request.form.get("username", "").strip()
+        password = request.form.get("password", "")
+        confirm = request.form.get("confirm", "")
+
+        # Vérification champs
+        if not username or not password:
+            flash("Tous les champs sont obligatoires")
+            return redirect(url_for("register"))
+
+        if password != confirm:
+            flash("Les mots de passe ne correspondent pas")
+            return redirect(url_for("register"))
+
+        db = connecter_sqlite()
+        try:
+            # Vérifier si utilisateur existe déjà
+            user = db.execute(
+                "SELECT id FROM users WHERE username = ?",
+                (username,)
+            ).fetchone()
+
+            if user:
+                flash("Nom d'utilisateur déjà utilisé")
+                return redirect(url_for("register"))
+
+            # Création utilisateur
+            db.execute(
+                "INSERT INTO users (username, password, role) VALUES (?, ?, ?)",
+                (username, generate_password_hash(password), "user")
+            )
+            db.commit()
+
+            flash("Compte créé avec succès, connectez-vous")
+            return redirect(url_for("login"))
+
+        finally:
+            db.close()   # 🔴 TRÈS IMPORTANT
+
+    return render_template("register.html")
+
+
+def connecter_sqlite():
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row  # accès par nom de colonne
+    return conn
+
 # Login
 @app.route("/login", methods=["GET", "POST"])
 def login():
-    if request.method == 'POST':
-        user = request.form['username']
-        pwd = request.form['password']
+    if request.method == "POST":
+        username = request.form.get("username", "").strip()
+        password = request.form.get("password", "")
 
-        if (user == "admin" and pwd == "admin123") or (user == "demo" and pwd == "demo123"):
-            session['logged'] = True
-            session['username']=user
-            return redirect(url_for('accueil'))
-        else:
-            flash("Utilisateur ou mot de passe incorrect!!!")
-            return redirect(url_for('login'))   # 🔥 IMPORTANT !
-    
-    return render_template('login.html')
-    
+        if not username or not password:
+            flash("Champs obligatoires")
+            return render_template("login.html"), 400  # Bad Request
+
+        db = connecter_sqlite()
+        try:
+            user = db.execute(
+                "SELECT id, username, password, role FROM users WHERE username = ?",
+                (username,)
+            ).fetchone()
+        finally:
+            db.close()
+
+        if user and check_password_hash(user["password"], password):
+            session["logged"] = True
+            session["user_id"] = user["id"]
+            session["username"] = user["username"]
+            session["role"] = user["role"]
+
+            return redirect(url_for("accueil")), 302  # Redirection OK
+
+        flash("Utilisateur ou mot de passe incorrect")
+        return render_template("login.html"), 401  # Unauthorized
+
+    return render_template("login.html"), 200
 
 @app.template_filter("milliers")
 def milliers(value):
@@ -78,11 +142,6 @@ def accueil():
         date=datetime.now().strftime('%Y-%m-%d'),
         username=username,
     )
-
-def connecter_sqlite():
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row  # accès par nom de colonne
-    return conn
 
 @app.route('/get_client', methods=['GET'])
 def get_client():
@@ -359,4 +418,17 @@ def download_file(filename):
 
 
 if __name__ == "__main__":
+    db = connecter_sqlite()
+
+    db.execute("""
+    CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT UNIQUE NOT NULL,
+        password TEXT NOT NULL,
+        role TEXT DEFAULT 'user'
+    )
+    """)
+
+    db.commit()
+    db.close()
     app.run(debug=True, host="0.0.0.0", port=5000)

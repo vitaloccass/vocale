@@ -108,16 +108,18 @@
         
         <button type="submit">Se connecter</button>
     </form>
+    <br>
+    <a href="{{ url_for('register') }}">Créer un compte</a>
     
     {% for m in get_flashed_messages() %}
         <p class="alert">{{ m }}</p>
     {% endfor %}
 
-    <div class="info">
+    <!--<div class="info">
         <strong>Comptes de démonstration :</strong>
         admin / admin123<br>
         demo / demo123
-    </div>
+    </div>-->
 </div>
 </body>
 </html>

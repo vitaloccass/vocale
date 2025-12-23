@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify,send_from_directory
 from werkzeug.security import generate_password_hash, check_password_hash
 import sqlite3
-from datetime import datetime, timedelta
+from datetime import datetime
 from functools import wraps
 from flask_login import login_required, current_user
 from flask import render_template
@@ -393,83 +393,6 @@ def upload_file():
         import traceback
         traceback.print_exc()
         return jsonify({"error": f"Erreur serveur: {str(e)}"}), 500
-
-@app.route("/reset-password/<token>", methods=["GET", "POST"])
-def reset_password(token):
-    db = connecter_sqlite()
-    try:
-        token_data = db.execute(
-            "SELECT * FROM reset_tokens WHERE token = ?", (token,)
-        ).fetchone()
-
-        if not token_data:
-            flash("Lien invalide")
-            return redirect(url_for("login"))
-
-        if datetime.fromisoformat(token_data["expires_at"]) < datetime.now():
-            flash("Lien expiré")
-            return redirect(url_for("login"))
-
-        if request.method == "POST":
-            password = request.form.get("password")
-            confirm = request.form.get("confirm")
-            if password != confirm:
-                flash("Les mots de passe ne correspondent pas")
-                return redirect(url_for("reset_password", token=token))
-
-            db.execute(
-                "UPDATE users SET password = ? WHERE id = ?",
-                (generate_password_hash(password), token_data["user_id"])
-            )
-            db.execute(
-                "DELETE FROM reset_tokens WHERE id = ?", (token_data["id"],)
-            )
-            db.commit()
-            flash("Mot de passe réinitialisé avec succès")
-            return redirect(url_for("login"))
-
-    finally:
-        db.close()
-
-    return render_template("reset_password.html")
-
-@app.route("/forgot-password", methods=["GET", "POST"])
-def forgot_password():
-    if request.method == "POST":
-        username = request.form.get("username", "").strip()
-        if not username:
-            flash("Veuillez entrer votre nom d'utilisateur")
-            return redirect(url_for("forgot_password"))
-
-        db = connecter_sqlite()
-        try:
-            user = db.execute(
-                "SELECT id FROM users WHERE username = ?", (username,)
-            ).fetchone()
-            
-            if not user:
-                flash("Utilisateur non trouvé")
-                return redirect(url_for("forgot_password"))
-
-            # Générer token unique
-            token = str(uuid.uuid4())
-            expires_at = datetime.now() + timedelta(hours=1)
-
-            db.execute(
-                "INSERT INTO reset_tokens (user_id, token, expires_at) VALUES (?, ?, ?)",
-                (user["id"], token, expires_at)
-            )
-            db.commit()
-
-            # Ici on "simule" l'envoi d'email
-            reset_link = url_for("reset_password", token=token, _external=True)
-            flash(f"Lien de réinitialisation (simulation) : {reset_link}")
-            return redirect(url_for("login"))
-
-        finally:
-            db.close()
-
-    return render_template("forgot_password.html")
 
 @app.route('/')
 def index():

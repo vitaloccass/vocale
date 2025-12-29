@@ -297,7 +297,6 @@ function traiterCommande(transcript) {
     }
 }
 
-
 function recup_client(code, callback) {
     fetch(`/get_client?code=${encodeURIComponent(code)}`)
         .then(r => r.json())

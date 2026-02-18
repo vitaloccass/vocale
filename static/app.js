@@ -50,32 +50,6 @@ if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
     };
 }
 
-function initRecognition() {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    recognition = new SpeechRecognition();
-
-    recognition.lang = "fr-FR";
-    recognition.continuous = false;      // 🚨 OBLIGATOIRE MOBILE
-    recognition.interimResults = false;  // PLUS STABLE
-    recognition.maxAlternatives = 1;
-
-    recognition.onend = () => {
-        isListening = false;
-        const btn = document.getElementById("micBtn");
-        btn.classList.remove("listening");
-        btn.innerText = "🎤 Commencer";
-    };
-
-    recognition.onerror = (e) => {
-        console.error("Erreur micro :", e);
-        recognition.stop();
-    };
-
-    recognition.onresult = (event) => {
-        const text = event.results[0][0].transcript.toLowerCase();
-        traiterCommande(text);
-    };
-}
 
 function isMobile() {
     return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -90,26 +64,87 @@ function handleMicClick() {
 }
 
 
-function toggleListenings() {
+function initRecognition() {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     recognition = new SpeechRecognition();
 
     recognition.lang = "fr-FR";
-    recognition.continuous = true;      // ⚠️ AVANT start()
+    recognition.continuous = true;
     recognition.interimResults = true;
-    recognition.maxAlternatives = 1;
+
+    recognition.onresult = function (event) {
+        let text = "";
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+            text += event.results[i][0].transcript;
+        }
+        console.log("Texte :", text);
+    };
 
     recognition.onend = function () {
-        console.log("Arrêt détecté");
-
-        // 🔁 relance automatique (obligatoire mobile)
+        // 🔁 Redémarrage automatique Android
         if (isListening) {
-            recognition.start();
+            setTimeout(() => {
+                try {
+                    recognition.start();
+                } catch (e) {}
+            }, 700);
+        }
+    };
+}
+
+// 🔥 Event listener UNE SEULE FOIS
+btn.addEventListener("click", () => {
+
+    if (!recognition) initRecognition();
+
+    if (isListening) {
+        isListening = false;
+        recognition.stop();
+        btn.innerText = "🎤 Démarrer";
+        return;
+    }
+
+    isListening = true;
+    recognition.start();
+    btn.innerText = "🎙️ Parlez…";
+});
+
+function toggleListenings() {
+    const btn = document.getElementById("micBtn");
+}
+
+function initRecognition() {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SpeechRecognition();
+
+    recognition.lang = "fr-FR";
+    recognition.continuous = true;
+    recognition.interimResults = true;
+
+    recognition.onresult = function (event) {
+        let text = "";
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+            text += event.results[i][0].transcript;
+        }
+        console.log("Texte:", text);
+    };
+
+    recognition.onend = function () {
+        console.log("🔁 Redémarrage auto");
+
+        if (isListening) {
+            setTimeout(() => {
+                try {
+                    recognition.start();
+                } catch (e) {
+                    console.log("Start bloqué, on attend...");
+                }
+            }, 800); // délai important sur Android
         }
     };
 
-    recognition.onerror = function (e) {
-        console.log("Erreur :", e.error);
+    recognition.onerror = function (event) {
+        console.log("Erreur:", event.error);
     };
 }
 

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Inscription</title>
+    <style>
+        body {
+            font-family: Arial;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .form-group select {
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath fill='%23666' d='M5.25 7.5L10 12.25L14.75 7.5'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 16px;
+        }
+
+        .form-group {
+            max-width: 320px;
+            margin: 15px 0;
+            font-family: "Segoe UI", Tahoma, sans-serif;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .form-group select {
+            width: 100%;
+            padding: 10px 12px;
+            font-size: 14px;
+            border-radius: 6px;
+            border: 1px solid #ccc;
+            background-color: #fff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        /* Focus */
+        .form-group select:focus {
+            border-color: #4f46e5;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2);
+        }
+
+        /* Hover */
+        .form-group select:hover {
+            border-color: #6366f1;
+        }
+
+        /* Option */
+        .form-group option {
+            padding: 8px;
+        }
+
+        .card {
+            background: white;
+            padding: 35px;
+            border-radius: 12px;
+            width: 380px;
+        }
+        input, button {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+        }
+        button {
+            background: #22c55e;
+            color: white;
+            border: none;
+        }
+        .alert {
+            color: red;
+        }
+        a {
+            display: block;
+            text-align: center;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>Créer un compte</h2>
+
+    {% for m in get_flashed_messages() %}
+        <div class="alert">{{ m }}</div>
+    {% endfor %}
+
+    <form method="POST">
+        <div class="form-group">
+            <label for="role">Type :</label>
+            <select name="ctype" required>
+                <option value="">-- Choisir --</option>
+                <option value="admin">Admin</option>
+                <option value="user">Utilisateur</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label for="role">Tsena :</label>
+            <select name="tsena" required>
+                <option value="">-- Choisir --</option>
+                <option value="180188">AMPEFILOHA</option>
+                <option value="180170">AMPITATAFIKA</option>
+                <option value="180189">ANDOHARANOFOTSY</option>
+                <option value="187823">BYPASS</option>
+                <option value="180190">ANALAMAHITSY</option>
+                <option value="180186">ANALAKELY</option>
+                <option value="186109">ANDRAVOAHANGY</option>
+                <option value="180191">SABOTSY NAMEHANA</option>
+                <option value="180192">67 HA</option>
+                <option value="181290">AMBOHIPO</option>
+                <option value="183405">MAHAZO</option>
+            </select>
+        </div>
+        
+        <input type="text" name="username" placeholder="Nom d'utilisateur" required>
+        <input type="password" name="password" placeholder="Mot de passe" required>
+        <input type="password" name="confirm" placeholder="Confirmer le mot de passe" required>
+        <button type="submit">S'inscrire</button>
+    </form>
+
+    <a href="{{ url_for('login') }}">Déjà un compte ? Se connecter</a>
+</div>
+
+</body>
+</html>

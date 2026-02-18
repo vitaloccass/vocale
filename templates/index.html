@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="fr">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Facture vocale</title>
+        <link rel="stylesheet" href="/static/style.css">
+        <script src="/static/app.js"></script>
+    </head>
+
+    <body>
+        <div class="header">
+            <div class="user-info">
+                <span>👤 Connecté en tant que : <strong>{{ username }}</strong></span>
+                <span id="type" style="visibility:hidden">{{ type }}</span>
+                <span id="tsena" style="visibility:hidden">{{ tsena }}</span>
+            </div>
+            <h1 class="titre-facture">
+                <span class="icon">🧾</span>  FACTURE vocale 🎤
+            </h1>
+            <a href="{{ url_for('logout') }}" class="btn-logout">🚪 Déconnexion</a>
+        </div>
+        <br>
+        <div class="card">
+            <div class="horizontal">
+                <div class="info"  style="font-size:10px;">
+                    <strong>Guide d'utilisation :</strong><br>
+                    1- Cliquer sur <span style="color: red;">Commencer</span> pour la dictée<br>
+                    2- Pour l'article et fournisseur : Dire <span style="color: red;">article suivi un extrait du mot dans l'article</span> <span style="color: green;">Une fenêtre s'ouvre pour récupérer la designation correspondante avec des numéros de ligne, dire le numéro de ligne pour sélectionner le bon article avec son fournisseur(Ex: article nem et tous les articles contenant un mot nem seront affichés dans le tableau)</span> <br>
+                    3- Pour la quantité,le PU et la remise : <span>A saisir car le vocale ne prend pas de virgule</span><br>
+                    <span style="color: crimson; font-weight: bold;"> POUR UNE NOUVELLE LIGNE : Dire Ligne</span><br><br>
+                    Pour envoyer : Dire <span style="color: blueviolet;">Envoyer</span><br>
+                    Pour nouvelle saisie : Dire <span style="color: blueviolet;">Nouvelle</span><br>
+                </div>
+
+            <div class="lines-container">
+                <button id="micBtn" class="btn-mic" onclick="toggleListening()">🎤 Commencer</button>
+                <h3>📌 Transcription :</h3>
+                <div id="transcript" style="background:#f3f4f6;padding:10px;border-radius:6px;">En attente…</div>
+
+                <br>
+                    <label class="lbltype" style="font-size:14px;">Type :</label>
+                <br>
+                
+                <div class="table-responsive">
+                    <table class="lines-table">
+                        <thead>
+                        <tr style="font-size:12px;">
+                            <th>Numéro facture</th>
+                            <th>Date</th>
+                            <th>Code Tsena</th>
+                            <th> Fournisseur</th>
+                            <th>Réf article</th>
+                            <th style="text-align: center;">Nom article</th>
+                            <th style="text-align: center;">Qté</th>
+                            <th style="text-align: center;">PU</th>
+                            <th style="text-align: center;">Remise</th>
+                            <th style="text-align: center;">TTC</th>
+                            <th style="visibility: hidden;"></th>
+                            <th style="visibility: hidden;"></th>
+                            <th style="visibility: hidden;"></th>
+                        </tr>
+                        </thead>
+                        <tbody id="table-body">
+                        <tr class="ligne" style="font-size:10px;">
+                            <td contenteditable="true"></td>
+                            <td contenteditable="true" onfocus="init()"></td>
+                            <td></td>
+                            <td contenteditable="true"></td>
+                            <td contenteditable="true"></td>
+                            <td contenteditable="true"></td>
+                            <td contenteditable="true" oninput="calculerTTC()"></td>
+                            <td contenteditable="true" oninput="calculerTTC()"></td>
+                            <td contenteditable="true" oninput="calculerTTC()"></td>
+                            <td class="tot_ttc"></td>
+                            <td style="visibility: hidden;"></td>
+                            <td style="visibility: hidden;"></td>
+                            <td style="visibility: hidden;"></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <br>
+                <select id="articleSelect" style="visibility: hidden;">
+                    <option value="">-- Sélectionner un article --</option>
+                </select>
+
+                <select id="fournisseurSelect" style="visibility: hidden;">
+                    <option value="">-- Sélectionner un fournisseur --</option>
+                </select>
+            <br>
+
+
+            <button class="btn-download" onclick="exporterTXT()" >📥 TXT</button>
+            <button class="btn-download" onclick="ajouterLigne()" style="visibility: hidden;">+</button>
+            <label class="lblmagasin" style="color:white"></label>
+            <label class="lbldepot" style="color:white"></label>
+            <label class="lblaffaire" style="color:white"></label>
+            <label class="lblnum_fact" style="color:white"></label>
+            <label class="lblfournisseur" style="color:white"></label>
+
+            <script src="/static/app.js"></script>
+    </body>
+</html>
+

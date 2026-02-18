@@ -91,26 +91,26 @@ function handleMicClick() {
 
 
 function toggleListenings() {
-    let recognition;
-    let isListening = false;
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    recognition = new SpeechRecognition();
 
-    const btn = document.getElementById("micBtn");
-
-    if (!recognition) initRecognition();
-
-    if (isListening) {
-        //recognition.stop();
-        return;
-    }
-
-    recognition.start();    // 🚨 DOIT être dans un clic utilisateur
-    recognition.continuous = true;
+    recognition.lang = "fr-FR";
+    recognition.continuous = true;      // ⚠️ AVANT start()
     recognition.interimResults = true;
     recognition.maxAlternatives = 1;
-    isListening = true;
 
-    btn.classList.add("listening");
-    btn.innerText = "🎙️ Parlez…";
+    recognition.onend = function () {
+        console.log("Arrêt détecté");
+
+        // 🔁 relance automatique (obligatoire mobile)
+        if (isListening) {
+            recognition.start();
+        }
+    };
+
+    recognition.onerror = function (e) {
+        console.log("Erreur :", e.error);
+    };
 }
 
 function toggleListening() {

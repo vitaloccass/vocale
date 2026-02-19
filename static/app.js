@@ -111,6 +111,40 @@ btn.addEventListener("click", () => {
 
 function toggleListenings() {
     const btn = document.getElementById("micBtn");
+    const resultDiv = document.getElementById("result");
+
+    if (isListening) {
+        return; // Déjà en écoute
+    }
+
+    isListening = true;
+    btn.classList.add('listening');
+    btn.textContent = '🎤 Écoute...';
+    resultDiv.textContent = 'Parlez maintenant...';
+
+    try {
+        const response = fetch('/toggle_listening', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        const data = response.json();
+
+        if (data.success) {
+            resultDiv.textContent = 'Vous avez dit : ' + data.text;
+            console.log('Texte reconnu:', data.text);
+        } else {
+            resultDiv.textContent = 'Erreur : ' + data.error;
+        }
+    } catch (error) {
+        resultDiv.textContent = 'Erreur de connexion : ' + error;
+    } finally {
+        isListening = false;
+        btn.classList.remove('listening');
+        btn.textContent = '🎤 Parler';
+    }
 }
 
 function initRecognition() {

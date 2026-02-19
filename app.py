@@ -13,6 +13,7 @@ from google.auth.transport.requests import Request
 from googleapiclient.http import MediaIoBaseUpload
 import pickle
 import requests
+import speech_recognition as sr
 
 app = Flask(__name__)
 app.secret_key = "secret123"  # CHANGEZ CETTE CLÉ EN PRODUCTION
@@ -590,6 +591,42 @@ def get_points_route():
         return jsonify({"error": "Point non trouvé"}), 404
 
     return jsonify({"id": point_id}), 200
+
+@app.route('/toggle_listening', methods=['POST'])
+def toggle_listening():
+    try:
+        recognizer = sr.Recognizer()
+        
+        with sr.Microphone() as source:
+            print("Écoute en cours...")
+            recognizer.adjust_for_ambient_noise(source, duration=0.5)
+            audio = recognizer.listen(source, timeout=5)
+        
+        # Reconnaissance vocale
+        text = recognizer.recognize_google(audio, language='fr-FR')
+        
+        return jsonify({
+            'success': True,
+            'text': text
+        })
+    
+    except sr.WaitTimeoutError:
+        return jsonify({
+            'success': False,
+            'error': 'Timeout: Aucun son détecté'
+        })
+    
+    except sr.UnknownValueError:
+        return jsonify({
+            'success': False,
+            'error': 'Impossible de comprendre l\'audio'
+        })
+    
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        })
 
 def get_point_id(nom_tsena):
     url = "https://api.fulleapps.io/points_of_sale"

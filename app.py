@@ -13,7 +13,6 @@ from google.auth.transport.requests import Request
 from googleapiclient.http import MediaIoBaseUpload
 import pickle
 import requests
-import speech_recognition as sr
 
 app = Flask(__name__)
 app.secret_key = "secret123"  # CHANGEZ CETTE CLÉ EN PRODUCTION
@@ -377,8 +376,6 @@ def upload_to_drive(file_content, filename, folder_id=None, mime_type='text/plai
 
 @app.route('/upload', methods=['POST'])
 def upload_file():
-    print("doudodu")
-        
     try:
         
         uploaded_file = request.files.get('file')
@@ -396,7 +393,10 @@ def upload_file():
         if "vente" in recs.lower():
             filename = f"VENTE_{clean(rec)}_{clean(nom_client)}_{clean(date_fact)}.txt"
         else:
-            filename = f"ACHAT_{clean(rec)}_{clean(nom_client)}_{clean(date_fact)}.txt"
+            if "BC" in (recs):
+                filename = f"BC_ACHAT_{clean(rec)}_{clean(nom_client)}_{clean(date_fact)}.txt"
+            else:
+                filename = f"FA_ACHAT_{clean(rec)}_{clean(nom_client)}_{clean(date_fact)}.txt"
 
         
         print(f"\n{'='*60}")
@@ -415,8 +415,6 @@ def upload_file():
             filename, 
             folder_id=folder_id
         )
-
-        
 
         return jsonify({
             "success": True,
@@ -592,41 +590,6 @@ def get_points_route():
 
     return jsonify({"id": point_id}), 200
 
-@app.route('/toggle_listening', methods=['POST'])
-def toggle_listening():
-    try:
-        recognizer = sr.Recognizer()
-        
-        with sr.Microphone() as source:
-            print("Écoute en cours...")
-            recognizer.adjust_for_ambient_noise(source, duration=0.5)
-            audio = recognizer.listen(source, timeout=5)
-        
-        # Reconnaissance vocale
-        text = recognizer.recognize_google(audio, language='fr-FR')
-        
-        return jsonify({
-            'success': True,
-            'text': text
-        })
-    
-    except sr.WaitTimeoutError:
-        return jsonify({
-            'success': False,
-            'error': 'Timeout: Aucun son détecté'
-        })
-    
-    except sr.UnknownValueError:
-        return jsonify({
-            'success': False,
-            'error': 'Impossible de comprendre l\'audio'
-        })
-    
-    except Exception as e:
-        return jsonify({
-            'success': False,
-            'error': str(e)
-        })
 
 def get_point_id(nom_tsena):
     url = "https://api.fulleapps.io/points_of_sale"
@@ -671,4 +634,5 @@ if __name__ == '__main__':
         print("   Téléchargez-le depuis Google Cloud Console\n")
     
     # Lancer l'application
-    app.run(debug=True, host="0.0.0.0", port=5000)
+    #app.run(debug=True, host="0.0.0.0", port=5000)
+    app.run(host='0.0.0.0', port=5000, ssl_context='adhoc')

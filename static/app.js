@@ -16,6 +16,7 @@ let price = 0;
 let qte_sto = 0;
 let nom_tsena="";
 
+
 document.addEventListener("DOMContentLoaded", () => {
     let select = document.getElementById("mySelect");
 
@@ -28,16 +29,38 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById("qtesto").textContent = qte_sto;
         });
     }
+
+    const connection_internet = document.getElementById("connexion");
+    let wasOffline = false;
+
+    setInterval(() => {
+        fetch("https://www.google.com", { method: "HEAD", mode: "no-cors", cache: "no-cache" })
+            .then(() => {
+                if (wasOffline) {
+                    wasOffline = false;
+                    connection_internet.innerHTML = "✅ Internet OK";
+                    location.reload();
+                    connection_internet.innerHTML = "✅ Internet OK";
+                } else {
+                    connection_internet.innerHTML = "✅ Internet OK";
+                }
+            })
+            .catch(() => {
+                wasOffline = true;
+                connection_internet.innerHTML = "❌ Pas d'internet";
+            });
+    }, 3000);
 });
 
 
 if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     recognition = new SpeechRecognition();
+
+    recognition.lang = "fr-FR";
     recognition.continuous = true;
     recognition.interimResults = true;
-    recognition.maxAlternatives = 1; 
-    
+    recognition.maxAlternatives = 1;
 
     recognition.onresult = (event) => {
         let text = "";
@@ -48,11 +71,31 @@ if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
         }
         document.getElementById("transcript").innerHTML = text;
     };
+
+    recognition.onend = () => {
+        if (isListening) {
+            // relancer automatiquement si on est censé écouter
+            try {
+                recognition.start();
+            } catch(e) {
+                console.log("restart error:", e);
+            }
+        } else {
+            const btn = document.getElementById("micBtn");
+            btn.classList.remove("listening");
+            btn.innerText = "🎤 Commencer";
+        }
+    };
+
+    recognition.onerror = (e) => {
+        console.error("Erreur micro :", e);
+        recognition.stop();
+    };
 }
 
-
 function isMobile() {
-    return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+    return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent) 
+        || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 }
 
 function handleMicClick() {
@@ -63,123 +106,55 @@ function handleMicClick() {
     }
 }
 
+function toggleListenings() {
+    let btn = document.getElementById("micBtn");
 
-function initRecognition() {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    recognition = new SpeechRecognition();
-
-    recognition.lang = "fr-FR";
-    recognition.continuous = true;
-    recognition.interimResults = true;
-
-    recognition.onresult = function (event) {
-        let text = "";
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-            text += event.results[i][0].transcript;
-        }
-        console.log("Texte :", text);
-    };
-
-    recognition.onend = function () {
-        // 🔁 Redémarrage automatique Android
-        if (isListening) {
-            setTimeout(() => {
-                try {
-                    recognition.start();
-                } catch (e) {}
-            }, 700);
-        }
-    };
-}
-
-// 🔥 Event listener UNE SEULE FOIS
-btn.addEventListener("click", () => {
-
-    if (!recognition) initRecognition();
-
-    if (isListening) {
-        isListening = false;
-        recognition.stop();
-        btn.innerText = "🎤 Démarrer";
+    if (!recognition) {
+        alert("La reconnaissance vocale n'est pas supportée sur ce navigateur.");
         return;
     }
 
-    isListening = true;
-    recognition.start();
-    btn.innerText = "🎙️ Parlez…";
-});
+    if (!isListening) {
+        recognition.lang = 'fr-FR';
+        recognition.continuous = false;      // false = plus stable sur mobile
+        recognition.interimResults = false;  // évite les résultats partiels non gérés
 
-function toggleListenings() {
-    const btn = document.getElementById("micBtn");
-    const resultDiv = document.getElementById("result");
-
-    if (isListening) {
-        return; // Déjà en écoute
-    }
-
-    isListening = true;
-    btn.classList.add('listening');
-    btn.textContent = '🎤 Écoute...';
-    resultDiv.textContent = 'Parlez maintenant...';
-
-    try {
-        const response = fetch('/toggle_listening', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            }
-        });
-
-        const data = response.json();
-
-        if (data.success) {
-            resultDiv.textContent = 'Vous avez dit : ' + data.text;
-            console.log('Texte reconnu:', data.text);
+        // Afficher le popup AVANT start() pour ne pas bloquer
+        const ctype = document.getElementById('type');
+        if (ctype.textContent.trim() !== "user") {
+            afficherDebuts();
         } else {
-            resultDiv.textContent = 'Erreur : ' + data.error;
+            afficherDebut();
         }
-    } catch (error) {
-        resultDiv.textContent = 'Erreur de connexion : ' + error;
-    } finally {
+
+        // Petit délai pour laisser le DOM se mettre à jour avant start()
+        setTimeout(() => {
+            recognition.start();
+        }, 100);
+
+        isListening = true;
+        btn.classList.add("listening");
+        btn.innerText = "⏸️ Arrêter";
+
+        // Sur iOS, la reco s'arrête souvent seule → relancer automatiquement
+        recognition.onend = () => {
+            if (isListening) {
+                recognition.start(); // relance tant que l'utilisateur n'a pas arrêté
+            }
+        };
+
+    } else {
         isListening = false;
-        btn.classList.remove('listening');
-        btn.textContent = '🎤 Parler';
+        recognition.onend = null; // désactiver le relancement auto
+        recognition.stop();
+        btn.classList.remove("listening");
+        btn.innerText = "🎤 Commencer";
+
+        // ⚠️ Ne pas faire location.reload() ici !
+        // Ça tue la page avant que onresult soit traité.
+        // Fais le traitement dans recognition.onresult, puis recharge si besoin :
+        // recognition.onresult = (e) => { /* traitement */ ; location.reload(); }
     }
-}
-
-function initRecognition() {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    recognition = new SpeechRecognition();
-
-    recognition.lang = "fr-FR";
-    recognition.continuous = true;
-    recognition.interimResults = true;
-
-    recognition.onresult = function (event) {
-        let text = "";
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-            text += event.results[i][0].transcript;
-        }
-        console.log("Texte:", text);
-    };
-
-    recognition.onend = function () {
-        console.log("🔁 Redémarrage auto");
-
-        if (isListening) {
-            setTimeout(() => {
-                try {
-                    recognition.start();
-                } catch (e) {
-                    console.log("Start bloqué, on attend...");
-                }
-            }, 800); // délai important sur Android
-        }
-    };
-
-    recognition.onerror = function (event) {
-        console.log("Erreur:", event.error);
-    };
 }
 
 function toggleListening() {
@@ -252,6 +227,13 @@ function filtrerArticles(motCle) {
     // Afficher la liste numérotée
     afficherListeFiltre(articlesFiltre);
     
+    // Sélectionner le fournisseur dans le select original
+    const select = document.getElementById('fournisseurSelect');
+    if (select) {
+        select.value = options.value;
+        // Déclencher l'événement change si nécessaire
+        select.dispatchEvent(new Event('change', { bubbles: true }));
+    }
     console.log(`${articlesFiltre.length} articles trouvés avec "${motCle}"`);
 }
 
@@ -325,6 +307,151 @@ function selectionnerArticleParNumero(numero) {
     const lblfournisseur = document.querySelector(".lblfournisseur");
     if (lblfournisseur && lblfournisseur.innerText.trim() === "") {
         recupererFournisseurs();
+    }else{
+        let listeDiv = document.getElementById('liste-fournisseurs-filtre');
+        if (!listeDiv) {
+            listeDiv = document.createElement('div');
+            listeDiv.id = 'liste-fournisseurs-filtre';
+            listeDiv.style.cssText = `
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                background: white;
+                border: 2px solid #333;
+                padding: 20px;
+                border-radius: 8px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                z-index: 9999;
+                width: 90vw;
+                max-width: 1200px;
+                max-height: 85vh;
+            `;
+            document.body.appendChild(listeDiv);
+        }
+
+        listeDiv.innerHTML = `
+            <label for="quantite-input" style="font-size: 1.2rem; font-weight: bold; display: block; margin: 15px 0 10px;">
+                Quelle quantité ?
+            </label>
+            <input 
+                type="number" 
+                id="quantite-input" 
+                placeholder="Entrez la quantité"
+                min="0"
+                value="0"
+                autofocus
+                style="
+                    width: 100%;
+                    padding: 12px;
+                    font-size: 1.2rem;
+                    border: 2px solid #007bff;
+                    border-radius: 4px;
+                    margin-bottom: 15px;
+                "
+            />
+
+            <label for="pu-input" style="font-size: 1.2rem; font-weight: bold; display: block; margin: 15px 0 10px;">
+                Quel PU ?
+            </label>
+            <input 
+                type="number" 
+                id="pu-input" 
+                placeholder="Entrez le PU"
+                min="0"
+                value="0"
+                autofocus
+                style="
+                    width: 100%;
+                    padding: 12px;
+                    font-size: 1.2rem;
+                    border: 2px solid #007bff;
+                    border-radius: 4px;
+                    margin-bottom: 15px;
+                "
+            />
+
+            <label for="remise-input" style="font-size: 1.2rem; font-weight: bold; display: block; margin: 15px 0 10px;">
+                Quelle remise ?
+            </label>
+            <input 
+                type="number" 
+                id="remise-input" 
+                placeholder="Entrez la remise"
+                min="0"
+                value="0"
+                autofocus
+                style="
+                    width: 100%;
+                    padding: 12px;
+                    font-size: 1.2rem;
+                    border: 2px solid #007bff;
+                    border-radius: 4px;
+                    margin-bottom: 15px;
+                "
+            />
+
+            <button id="valider-quantite" style="
+                width: 100%;
+                padding: 12px;
+                font-size: 1.1rem;
+                background: #28a745;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                cursor: pointer;
+            ">
+                ✓ Valider
+            </button>
+        `;
+        
+        // Bouton valider
+        document.getElementById('valider-quantite').addEventListener('click', () => {
+            const quantite = document.getElementById('quantite-input').value || 0;
+            const pu = document.getElementById('pu-input').value || 0;
+            const remise = document.getElementById('remise-input').value || 0;
+
+            let rows = document.querySelectorAll("#table-body tr");
+            if (!rows.length) return;
+
+            let targetRow = null;
+
+            rows.forEach(row => {
+                const tdClient = row.children[3];
+                if (tdClient && tdClient.innerText.trim() === "" && !targetRow) {
+                    targetRow = row;
+                }
+            });
+
+            // si aucune ligne vide trouvée → prendre la dernière
+            if (!targetRow) {
+                targetRow = rows[rows.length - 1];
+            }
+            const tdqte = targetRow.children[6]; // colonne qte article
+            console.log("Qte reçu :", quantite);
+            tdqte.innerText = quantite;
+
+            const tdpu = targetRow.children[7]; // colonne pu article
+            console.log("PU reçu :", pu);
+            tdpu.innerText = pu;
+
+            const tdremise = targetRow.children[8]; // colonne remise article
+            console.log("Remise reçu :", remise);
+            tdremise.innerText = remise;
+
+            calculerTTC();
+
+            // Sélectionner l'article dans le select
+            const select = document.getElementById('articleSelect');
+            if (select) {
+                select.value = optionChoisie.value;
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+            
+            // TODO : Envoyer la quantité à votre backend ou stocker dans une variable
+            
+            listeDiv.remove();
+        });
     }
 }
 
@@ -353,10 +480,7 @@ function selectionnerFournisseurParNumero(numero) {
     
     // Fermer la liste affichée
     const listeDiv = document.getElementById('liste-fournisseurs-filtre');
-    if (listeDiv) {
-        listeDiv.remove();
-    }
-
+    
     let rows = document.querySelectorAll("#table-body tr");
     if (!rows.length) return;
 
@@ -380,11 +504,8 @@ function selectionnerFournisseurParNumero(numero) {
     const lblfournisseur = document.querySelector(".lblfournisseur");
     lblfournisseur.innerText= optionChoisie.textContent;
 
-    columnsContainer.style.display = 'none';
-    
     // Afficher le formulaire quantité
     listeDiv.innerHTML = `
-        <h3>Article sélectionné : ${opt.textContent}</h3>
         <label for="quantite-input" style="font-size: 1.2rem; font-weight: bold; display: block; margin: 15px 0 10px;">
             Quelle quantité ?
         </label>
@@ -495,12 +616,10 @@ function selectionnerFournisseurParNumero(numero) {
 
         calculerTTC();
 
-        console.log(`✅ Article : ${opt.textContent}, Quantité : ${quantite}`);
-        
         // Sélectionner l'article dans le select
         const select = document.getElementById('articleSelect');
         if (select) {
-            select.value = opt.value;
+            select.value = optionChoisie.value;
             select.dispatchEvent(new Event('change', { bubbles: true }));
         }
         
@@ -606,13 +725,17 @@ function afficherFournisseurFiltre(fournisseur) {
             }
 
             const fournisseur = targetRow.children[3];
-            fournisseur.innerText   = opt.textContent;
+            const codefournisseur = targetRow.children[13];
+            
+            const recup=opt.textContent.split('/');
+            codefournisseur.innerText   = recup[0];
+            fournisseur.innerText   = recup[1];
             const lblfournisseur = document.querySelector(".lblfournisseur");
             lblfournisseur.innerText= opt.textContent;
 
             // Masquer la liste
             columnsContainer.style.display = 'none';
-            
+
             // Afficher le formulaire quantité
             listeDiv.innerHTML = `
                 <h3>Article sélectionné : ${opt.textContent}</h3>
@@ -878,9 +1001,160 @@ function afficherListeFiltre(articles) {
             const lblfournisseur = document.querySelector(".lblfournisseur");
             if (lblfournisseur && lblfournisseur.innerText.trim() === "") {
                 recupererFournisseurs();
+            }else{
+                let listeDiv = document.getElementById('liste-articles-filtre');
+
+                if (!listeDiv) {
+                    listeDiv = document.createElement('div');
+                    listeDiv.id = 'liste-articles-filtre';
+                    listeDiv.style.cssText = `
+                        position: fixed;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        background: white;
+                        border: 2px solid #333;
+                        padding: 20px;
+                        border-radius: 8px;
+                        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                        z-index: 9999;
+                        width: 90vw;
+                        max-width: 1200px;
+                        max-height: 85vh;
+                    `;
+                    document.body.appendChild(listeDiv);
+                }
+
+                listeDiv.innerHTML = '<h3 style="margin-bottom: 15px; font-size: 1.5rem;">Articles trouvés (dites le numéro ou cliquez) :</h3>';
+
+                listeDiv.innerHTML = `
+                <label for="quantite-input" style="font-size: 1.2rem; font-weight: bold; display: block; margin: 15px 0 10px;">
+                    Quelle quantité ?
+                </label>
+                <input 
+                    type="number" 
+                    id="quantite-input" 
+                    placeholder="Entrez la quantité"
+                    min="0"
+                    value="0"
+                    autofocus
+                    style="
+                        width: 100%;
+                        padding: 12px;
+                        font-size: 1.2rem;
+                        border: 2px solid #007bff;
+                        border-radius: 4px;
+                        margin-bottom: 15px;
+                    "
+                />
+
+                <label for="pu-input" style="font-size: 1.2rem; font-weight: bold; display: block; margin: 15px 0 10px;">
+                    Quel PU ?
+                </label>
+                <input 
+                    type="number" 
+                    id="pu-input" 
+                    placeholder="Entrez le PU"
+                    min="0"
+                    value="0"
+                    autofocus
+                    style="
+                        width: 100%;
+                        padding: 12px;
+                        font-size: 1.2rem;
+                        border: 2px solid #007bff;
+                        border-radius: 4px;
+                        margin-bottom: 15px;
+                    "
+                />
+
+                <label for="remise-input" style="font-size: 1.2rem; font-weight: bold; display: block; margin: 15px 0 10px;">
+                    Quelle remise ?
+                </label>
+                <input 
+                    type="number" 
+                    id="remise-input" 
+                    placeholder="Entrez la remise"
+                    min="0"
+                    value="0"
+                    autofocus
+                    style="
+                        width: 100%;
+                        padding: 12px;
+                        font-size: 1.2rem;
+                        border: 2px solid #007bff;
+                        border-radius: 4px;
+                        margin-bottom: 15px;
+                    "
+                />
+
+                <button id="valider-quantite" style="
+                    width: 100%;
+                    padding: 12px;
+                    font-size: 1.1rem;
+                    background: #28a745;
+                    color: white;
+                    border: none;
+                    border-radius: 4px;
+                    cursor: pointer;
+                ">
+                    ✓ Valider
+                </button>
+            `;
+            
+            // Bouton valider
+            document.getElementById('valider-quantite').addEventListener('click', () => {
+                const quantite = document.getElementById('quantite-input').value || 0;
+                const pu = document.getElementById('pu-input').value || 0;
+                const remise = document.getElementById('remise-input').value || 0;
+
+                let rows = document.querySelectorAll("#table-body tr");
+                if (!rows.length) return;
+
+                let targetRow = null;
+
+                rows.forEach(row => {
+                    const tdClient = row.children[3];
+                    if (tdClient && tdClient.innerText.trim() === "" && !targetRow) {
+                        targetRow = row;
+                    }
+                });
+
+                // si aucune ligne vide trouvée → prendre la dernière
+                if (!targetRow) {
+                    targetRow = rows[rows.length - 1];
+                }
+                const tdqte = targetRow.children[6]; // colonne qte article
+                console.log("Qte reçu :", quantite);
+                tdqte.innerText = quantite;
+
+                const tdpu = targetRow.children[7]; // colonne pu article
+                console.log("PU reçu :", pu);
+                tdpu.innerText = pu;
+
+                const tdremise = targetRow.children[8]; // colonne remise article
+                console.log("Remise reçu :", remise);
+                tdremise.innerText = remise;
+
+                calculerTTC();
+
+                console.log(`✅ Article : ${opt.textContent}, Quantité : ${quantite}`);
+                
+                // Sélectionner l'article dans le select
+                const select = document.getElementById('articleSelect');
+                if (select) {
+                    select.value = opt.value;
+                    select.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+                
+                // TODO : Envoyer la quantité à votre backend ou stocker dans une variable
+                
+                listeDiv.remove();
+            });
             }
+            
         });
-        
+
         columnsContainer.appendChild(div);
     });
 
@@ -913,7 +1187,7 @@ function recupererFournisseurs(){
                 const fournisseursUniques = new Set();
 
                 data.list.forEach(fournisseur => {
-                    const name = String(fournisseur.fullname || "").trim();
+                    const name = String(fournisseur.id +'/'+ fournisseur.fullname || "").trim();
                     if (name) fournisseursUniques.add(name);
                 });
 
@@ -1447,6 +1721,7 @@ function traiterChoixdebut(choix) {
         .then(response => response.json())
         .then(data => {
             const select = document.getElementById('articleSelect');
+            const chargement = document.getElementById('chargement');
             select.innerHTML = '<option value="">-- Sélectionner un article --</option>';
             
             if (data.list && Array.isArray(data.list)) {
@@ -1477,7 +1752,7 @@ function traiterChoixdebut(choix) {
                 });
                 
                 console.log(`✅ ${articlesUniques.size} articles uniques et triés`);
-                
+                chargement.innerText=`✅ ${articlesUniques.size} articles uniques et triés`;
                 if (articlesUniques.size === 0) {
                     select.innerHTML = '<option value="">Aucun article disponible</option>';
                 }
@@ -1588,7 +1863,7 @@ function afficherDebuts() {
         cursor: pointer;
         transition: background 0.2s;
     `;
-    li3.textContent = `2. FACT ACHAT`;
+    li3.textContent = `3. FACT ACHAT`;
 
     li3.addEventListener('mouseenter', () => {
         li3.style.background = '#d0d0d0';
@@ -1655,19 +1930,36 @@ function selectionnerDebut(numero) {
         });
 
     console.log("Numéro choisi:", numero);
-    
-    if (numero < 1 || numero > choixDebut.length) {
-        console.log("Numéro invalide");
-        return;
-    }
-    
-    const choix = choixDebut[numero - 1];
-    
-    // Afficher dans .lbltype
-    const lbltype = document.querySelector('.lbltype');
-    if (lbltype) {
-        lbltype.innerText = "Type : "+choix;
-        console.log("Type sélectionné:", choix);
+    const ctype = document.getElementById('type');
+
+    if(ctype.textContent.trim() !== "user"){
+        if (numero < 1 || numero > choixDebuts.length) {
+            console.log("Numéro invalide");
+            return;
+        }
+        
+        const choix = choixDebuts[numero - 1];
+        
+        // Afficher dans .lbltype
+        const lbltype = document.querySelector('.lbltype');
+        if (lbltype) {
+            lbltype.innerText = "Type : "+choix;
+            console.log("Type sélectionné:", choix);
+        }
+    }else{
+        if (numero < 1 || numero > choixDebut.length) {
+            console.log("Numéro invalide");
+            return;
+        }
+        
+        const choix = choixDebut[numero - 1];
+        
+        // Afficher dans .lbltype
+        const lbltype = document.querySelector('.lbltype');
+        if (lbltype) {
+            lbltype.innerText = "Type : "+choix;
+            console.log("Type sélectionné:", choix);
+        }
     }
     
     // Fermer la liste
@@ -1678,8 +1970,7 @@ function selectionnerDebut(numero) {
 
         // Utilisation
 
-    const ctype = document.getElementById('type');
-
+    
     if(ctype.textContent.trim() !== "user"){
         afficher_magasins(magasinsFiltre);
     }else{
@@ -1747,6 +2038,7 @@ function selectionnerDebut(numero) {
         afficher_magasins(magasinsFiltre);
     }
 }
+
 
 const motsVersChiffres = {
     'zéro': '0', 'zero': '0',
@@ -1831,7 +2123,7 @@ function traiterCommande(transcript) {
     if(cmd=="ligne" || cmd=="lignes"){
         ajouterLigne();
     }else if (cmd.includes("article") || cmd.includes("Article")) {
-         const motCle = cmd.replace("article", "").trim();
+        const motCle = cmd.replace("article", "").trim();
     
         if (motCle) {
             filtrerArticles(motCle);
@@ -1865,121 +2157,6 @@ function traiterCommande(transcript) {
         exporterTXT();
     }else if(cmd.includes("nouvelle")){
         reinitialiser(); 
-    }else if(cmd.includes("quantité")){
-        console.log("=== DÉBUT DEBUG ===");
-        console.log("Commande complète:", cmd);
-
-        const qteMatch = cmd.match(/quantité\s*(.+?)(?:\.|$)/i);
-        console.log("qteMatch:", qteMatch);
-
-        let code = 0;
-
-        if (qteMatch) {
-            let texte = qteMatch[1].trim();
-            texte = texte.replace(/\kilos\b/gi, ',');
-            texte = texte.replace(/\kilo\b/gi, ',');
-            console.log("1. Texte brut:", texte);
-            
-            // Remplacer les mots "virgule" ou "point" par "."
-            texte = texte.replace(/\s*,\s*/g, '.');
-            texte = texte.replace(/\s*\.\s*/g, '.');
-            console.log("2. Après remplacement virgule/point:", texte.trim());
-            
-            // Extraire les chiffres et points
-            let numbersOnly = texte.match(/[\d\.]+/);
-            console.log("3. Nombres extraits:", numbersOnly);
-            
-            if (numbersOnly) {
-                let qteStr = numbersOnly[0];
-                console.log("4. String numérique:", qteStr);
-                
-                code = parseFloat(qteStr);
-                console.log("5. ✓ CODE FINAL:", code);
-            }
-        }
-
-        console.log("=== FIN DEBUG ===");
-
-        let rows = document.querySelectorAll("#table-body tr");
-        if (!rows.length) return;
-
-        let targetRow = null;
-
-        rows.forEach(row => {
-            const tdClient = row.children[3];
-            if (tdClient && tdClient.innerText.trim() === "" && !targetRow) {
-                targetRow = row;
-            }
-        });
-
-        // si aucune ligne vide trouvée → prendre la dernière
-        if (!targetRow) {
-            targetRow = rows[rows.length - 1];
-        }
-        const tdqte = targetRow.children[6]; // colonne qte article
-        console.log("Qte reçu :", code);
-        tdqte.innerText = code;
-        calculerTTC();
-    }else if(cmd.includes("tarif")){
-        // Regex corrigée pour capturer le nombre après "prix"
-        const prixMatch = cmd.match(/tarif\s*,?\s*(\d+(?:[.,]\d+)?)/i);
-        let prix = 0;
-        
-        if (prixMatch) {
-            // Remplacer la virgule par un point pour Number()
-            prix = Number(prixMatch[1].replace(',', '.'));
-            console.log("Prix extrait:", prix); 
-        } else {
-            console.log("Aucun prix trouvé dans:", cleanCmd);
-            return;
-        }
-
-        let rows = document.querySelectorAll("#table-body tr");
-        if (!rows.length) return;
-
-        let targetRow = null;
-
-        // chercher la ligne "vide" (colonne client vide)
-        rows.forEach(row => {
-            const tdClient = row.children[3]; // colonne Nom client
-            if (tdClient && tdClient.innerText.trim() === "" && !targetRow) {
-                targetRow = row;
-            }
-        });
-
-        // si aucune ligne vide trouvée → prendre la dernière
-        if (!targetRow) {
-            targetRow = rows[rows.length - 1];
-        }
-        
-        const tdpu = targetRow.children[7]; // colonne PU
-        console.log("Prix reçu :", prix);
-        tdpu.innerText = prix;
-        calculerTTC();
-    }else if(cmd.includes("remise") || cmd.includes("remises")){
-        const remiseMatch = cmd.match(/\bremises?\s+(\d+)\b/i);
-        if (!remiseMatch) {
-            console.warn("Aucune remise trouvée dans la commande :", cmd);
-            return;
-        }
-
-        const code = convertirMotsEnChiffres(remiseMatch[1]);
-        console.log("Remise reçue :", code);
-
-        let rows = document.querySelectorAll("#table-body tr");
-        if (!rows.length) return;
-
-        let targetRow = Array.from(rows).find(row => {
-            const tdClient = row.children[3];
-            return tdClient && tdClient.innerText.trim() === "";
-        }) || rows[rows.length - 1];
-
-        const tdremise = targetRow.children[8];
-        if (tdremise) {
-            tdremise.innerText = code;
-            calculerTTC();
-        }
-
     }
 }
 
@@ -1991,7 +2168,7 @@ function recup_client(code, callback) {
 
 function reinitialiser(){
     // Réinitialiser le label
-    const lbltype = document.querySelector(".lblType");
+    const lbltype = document.querySelector(".lbltype");
     lbltype.innerHTML = "Type : ";
 
     const lblfournisseur = document.querySelector(".lblfournisseur");
@@ -2267,9 +2444,10 @@ function exporterTXT() {
     let lines = [];
 
     const lblMagasin = document.querySelector(".lblmagasin");
-    const lbltype = document.querySelector(".lblType");
+    const lbltype = document.querySelector(".lbltype");
+    
     const rec = lblMagasin ? lblMagasin.innerText.trim() : "unknown";
-    const recs = lbltype ? lbltype.innerText.trim() : "unknown";
+    const recs = lbltype ? lbltype.textContent.trim() : "unknown";
     let nomClient = "";
     let dateFact = "";
 
@@ -2277,7 +2455,7 @@ function exporterTXT() {
         let tds = tr.querySelectorAll("td");
         if (tds[3].innerText.trim() !== "") {
             let numFact = tds[0].innerText.trim();
-            dateFact = tds[1].innerText.trim();
+            dateFact = tds[1].innerText.trim().split('-').reverse().join('/');
             nomClient = tds[3].innerText.trim();
             let tsena = tds[2].innerText.trim();
             let ref = tds[4].innerText.trim();
@@ -2287,17 +2465,24 @@ function exporterTXT() {
             let remise = tds[8].innerText.trim();
             let depot = tds[11].innerHTML;
             let affaire = tds[12].innerHTML;
+            let code_fournisseur = tds[13].innerHTML;
 
             let mtt = Number(qte) * Number(pu) * (1 - Number(remise)/100);
-
-            if (recs.includes("vente")){
+            if (recs.toLocaleLowerCase().includes("vente")){
                 lines.push(
-                    `0\t7\t${numFact}\t${dateFact}\t${tsena}\t${nomClient}\t${ref}\t${article}\t${qte}\t${pu}\t${mtt.toFixed(2)}\t${remise}\t0\t${depot}\t${affaire}\t1`
+                    `1\t6\t${numFact}\t${dateFact}\t${tsena}\t${nomClient}\t${ref}\t${article}\t${pu}\t${qte}\t${remise}\t${mtt.toFixed(2)}\t0\t${depot}\t${affaire}\t1`
                 );
             }else{
-                lines.push(
-                    `1\t6\t${numFact}\t${dateFact}\t${tsena}\t${nomClient}\t${ref}\t${article}\t${qte}\t${pu}\t${mtt.toFixed(2)}\t${remise}\t0\t${depot}\t${affaire}\t1`
-                );
+                if (recs.toLocaleLowerCase().includes("bc")){
+                    lines.push(
+                        `1\t12\t${numFact}\t${dateFact}\t${code_fournisseur}\t${nomClient}\t${ref}\t${article}\t${pu}\t${qte}\t${remise}\t${mtt.toFixed(2)}\t0\t${depot}\t${affaire}\t1`
+                    );
+                }else{
+                     lines.push(
+                        `1\t16\t${numFact}\t${dateFact}\t${code_fournisseur}\t${nomClient}\t${ref}\t${article}\t${pu}\t${qte}\t${remise}\t${mtt.toFixed(2)}\t0\t${depot}\t${affaire}\t1`
+                    );
+                }
+
             }
         }
     });
@@ -2315,6 +2500,8 @@ function exporterTXT() {
             filename = `FA_ACHAT_${rec}_${nomClient}_${dateFact}.txt`;
         }
     }
+
+    recs_tsena=recuperer_nom_tsena();
 
     const blob = new Blob([content], { type: "text/plain" });
 
@@ -2342,4 +2529,5 @@ function exporterTXT() {
     .catch(err => console.error("Erreur upload:", err));
 
 }
+
 

@@ -248,3 +248,41 @@ td {
         width: 95%;
     }
 }
+
+.lines-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.lines-table th,
+.lines-table td {
+    padding: 2px 4px;
+    word-break: break-word;
+    font-size: 7px;
+}
+
+/* VERSION MOBILE */
+@media (max-width: 768px) {
+
+    .lines-table {
+        font-size: 8px; /* plus petit */
+    }
+
+    .lines-table th,
+    .lines-table td {
+        padding: 1px 2px;
+    }
+
+    /* Masquer colonnes inutiles */
+    .lines-table th:nth-child(11),
+    .lines-table th:nth-child(12),
+    .lines-table th:nth-child(13),
+    .lines-table th:nth-child(14),
+    .lines-table td:nth-child(11),
+    .lines-table td:nth-child(12),
+    .lines-table td:nth-child(13),
+    .lines-table td:nth-child(14) {
+        display: none;
+    }
+
+}

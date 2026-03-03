@@ -116,18 +116,22 @@ function toggleListenings() {
 
     if (!isListening) {
         recognition.lang = 'fr-FR';
-        recognition.continuous = false;      // false = plus stable sur mobile
-        recognition.interimResults = false;  // évite les résultats partiels non gérés
+        recognition.continuous = false;
+        recognition.interimResults = false;
 
-        // Afficher le popup AVANT start() pour ne pas bloquer
+        // Définir onend AVANT start() pour éviter la race condition
+        recognition.onend = () => {
+            if (isListening) {
+                recognition.start();
+            }
+        };
+
         const ctype = document.getElementById('type');
-        if (ctype.textContent.trim() !== "user") {
-            afficherDebuts();
-        } else {
-            afficherDebut();
-        }
+        const isUser = ctype.textContent.trim() === "user";
 
-        // Petit délai pour laisser le DOM se mettre à jour avant start()
+        // Un seul appel, avant le start()
+        isUser ? afficherDebut() : afficherDebuts();
+
         setTimeout(() => {
             recognition.start();
         }, 100);
@@ -136,24 +140,12 @@ function toggleListenings() {
         btn.classList.add("listening");
         btn.innerText = "⏸️ Arrêter";
 
-        // Sur iOS, la reco s'arrête souvent seule → relancer automatiquement
-        recognition.onend = () => {
-            if (isListening) {
-                recognition.start(); // relance tant que l'utilisateur n'a pas arrêté
-            }
-        };
-
     } else {
         isListening = false;
-        recognition.onend = null; // désactiver le relancement auto
+        recognition.onend = null;
         recognition.stop();
         btn.classList.remove("listening");
         btn.innerText = "🎤 Commencer";
-
-        // ⚠️ Ne pas faire location.reload() ici !
-        // Ça tue la page avant que onresult soit traité.
-        // Fais le traitement dans recognition.onresult, puis recharge si besoin :
-        // recognition.onresult = (e) => { /* traitement */ ; location.reload(); }
     }
 }
 
@@ -238,6 +230,288 @@ function filtrerArticles(motCle) {
 }
 
 let fournisseurFiltre = [];
+
+function afficherListeFiltre(articles) {
+    let listeDiv = document.getElementById('liste-articles-filtre');
+
+    if (!listeDiv) {
+        listeDiv = document.createElement('div');
+        listeDiv.id = 'liste-articles-filtre';
+        listeDiv.style.cssText = `
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border: 2px solid #333;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            z-index: 9999;
+            width: 90vw;
+            max-width: 1200px;
+            max-height: 85vh;
+        `;
+        document.body.appendChild(listeDiv);
+    }
+
+    listeDiv.innerHTML = '<h3 style="margin-bottom: 15px; font-size: 1.5rem;">Articles trouvés (dites le numéro ou cliquez) :</h3>';
+
+    // ✅ Définir le nombre de colonnes selon le nombre d'articles
+    const nbArticles = articles.length;
+    let nbColonnes = 3; // Par défaut 3 colonnes
+
+    if (nbArticles > 100) {
+        nbColonnes = 5;
+    } else if (nbArticles > 50) {
+        nbColonnes = 4;
+    }
+
+    // ✅ Container avec colonnes fixes
+    const columnsContainer = document.createElement('div');
+    columnsContainer.style.cssText = `
+        display: grid;
+        grid-template-columns: repeat(${nbColonnes}, 1fr);
+        gap: 10px;
+        max-height: calc(85vh - 100px);
+        overflow-y: auto;
+    `;
+
+    articles.forEach((opt, index) => {
+        const div = document.createElement('div');
+        div.style.cssText = `
+            padding: 12px 15px;
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            font-size: 0.42rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+        `;
+        
+        div.textContent = `${index + 1}. ${opt.textContent}`;
+        
+        // ✅ Hover effect
+        div.addEventListener('mouseenter', () => {
+            div.style.background = '#007bff';
+            div.style.color = 'white';
+            div.style.transform = 'scale(1.02)';
+        });
+        
+        div.addEventListener('mouseleave', () => {
+            div.style.background = '#f8f9fa';
+            div.style.color = 'black';
+            div.style.transform = 'scale(1)';
+        });
+        
+        // ✅ Clic sur l'article
+        div.addEventListener('click', () => {
+            let rows = document.querySelectorAll("#table-body tr");
+            if (!rows.length) return;
+
+            let targetRow = null;
+
+            // chercher la ligne "vide" (colonne client vide)
+            rows.forEach(row => {
+                const tdClient = row.children[3]; // colonne Nom client
+                if (tdClient && tdClient.innerText.trim() === "" && !targetRow) {
+                    targetRow = row;
+                }
+            });
+
+            // si aucune ligne vide trouvée → prendre la dernière
+            if (!targetRow) {
+                targetRow = rows[rows.length - 1];
+            }
+            const code_article = targetRow.children[4];
+            const nom_article = targetRow.children[5];
+
+            if(opt.textContent.includes('/')){
+                const elements = opt.textContent.split('/');
+                
+                code_article.innerText   = elements[0];
+                if(elements.length>2){
+                    nom_article.innerText   = elements[1]+"/"+elements[2];
+                }else{
+                    nom_article.innerText   = elements[1];
+                }
+            }else{
+                nom_article.innerText   = opt.textContent;
+            }
+            // Sélectionner l'article dans le select original
+            const select = document.getElementById('articleSelect');
+            if (select) {
+                select.value = opt.value;
+                // Déclencher l'événement change si nécessaire
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+            
+            // Fermer la popup
+            listeDiv.remove();
+
+            const lblfournisseur = document.querySelector(".lblfournisseur");
+            if (lblfournisseur && lblfournisseur.innerText.trim() === "") {
+                recupererFournisseurs();
+            }else{
+                let listeDiv = document.getElementById('liste-articles-filtre');
+
+                if (!listeDiv) {
+                    listeDiv = document.createElement('div');
+                    listeDiv.id = 'liste-articles-filtre';
+                    listeDiv.style.cssText = `
+                        position: fixed;
+                        top: 50%;
+                        left: 50%;
+                        transform: translate(-50%, -50%);
+                        background: white;
+                        border: 2px solid #333;
+                        padding: 20px;
+                        border-radius: 8px;
+                        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                        z-index: 9999;
+                        width: 90vw;
+                        max-width: 1200px;
+                        max-height: 85vh;
+                    `;
+                    document.body.appendChild(listeDiv);
+                }
+
+                listeDiv.innerHTML = '<h3 style="margin-bottom: 15px; font-size: 1.5rem;">Articles trouvés (dites le numéro ou cliquez) :</h3>';
+
+                listeDiv.innerHTML = `
+                <label for="quantite-input" style="font-size: 1.2rem; font-weight: bold; display: block; margin: 15px 0 10px;">
+                    Quelle quantité ?
+                </label>
+                <input 
+                    type="number" 
+                    id="quantite-input" 
+                    placeholder="Entrez la quantité"
+                    min="0"
+                    value="0"
+                    autofocus
+                    style="
+                        width: 100%;
+                        padding: 12px;
+                        font-size: 1.2rem;
+                        border: 2px solid #007bff;
+                        border-radius: 4px;
+                        margin-bottom: 15px;
+                    "
+                />
+
+                <label for="pu-input" style="font-size: 1.2rem; font-weight: bold; display: block; margin: 15px 0 10px;">
+                    Quel PU ?
+                </label>
+                <input 
+                    type="number" 
+                    id="pu-input" 
+                    placeholder="Entrez le PU"
+                    min="0"
+                    value="0"
+                    autofocus
+                    style="
+                        width: 30%;
+                        padding: 12px;
+                        font-size: 0.2rem;
+                        border: 2px solid #007bff;
+                        border-radius: 4px;
+                        margin-bottom: 15px;
+                    "
+                />
+
+                <label for="remise-input" style="font-size: 1.2rem; font-weight: bold; display: block; margin: 15px 0 10px;">
+                    Quelle remise ?
+                </label>
+                <input 
+                    type="number" 
+                    id="remise-input" 
+                    placeholder="Entrez la remise"
+                    min="0"
+                    value="0"
+                    autofocus
+                    style="
+                        width: 30%;
+                        padding: 12px;
+                        font-size: 0.2rem;
+                        border: 2px solid #007bff;
+                        border-radius: 4px;
+                        margin-bottom: 15px;
+                    "
+                />
+
+                <button id="valider-quantite" style="
+                    width: 30%;
+                    padding: 12px;
+                    font-size: 0.2rem;
+                    background: #28a745;
+                    color: white;
+                    border: none;
+                    border-radius: 4px;
+                    cursor: pointer;
+                ">
+                    ✓ Valider
+                </button>
+            `;
+            
+            // Bouton valider
+            document.getElementById('valider-quantite').addEventListener('click', () => {
+                const quantite = document.getElementById('quantite-input').value || 0;
+                const pu = document.getElementById('pu-input').value || 0;
+                const remise = document.getElementById('remise-input').value || 0;
+
+                let rows = document.querySelectorAll("#table-body tr");
+                if (!rows.length) return;
+
+                let targetRow = null;
+
+                rows.forEach(row => {
+                    const tdClient = row.children[3];
+                    if (tdClient && tdClient.innerText.trim() === "" && !targetRow) {
+                        targetRow = row;
+                    }
+                });
+
+                // si aucune ligne vide trouvée → prendre la dernière
+                if (!targetRow) {
+                    targetRow = rows[rows.length - 1];
+                }
+                const tdqte = targetRow.children[6]; // colonne qte article
+                console.log("Qte reçu :", quantite);
+                tdqte.innerText = quantite;
+
+                const tdpu = targetRow.children[7]; // colonne pu article
+                console.log("PU reçu :", pu);
+                tdpu.innerText = pu;
+
+                const tdremise = targetRow.children[8]; // colonne remise article
+                console.log("Remise reçu :", remise);
+                tdremise.innerText = remise;
+
+                calculerTTC();
+
+                console.log(`✅ Article : ${opt.textContent}, Quantité : ${quantite}`);
+                
+                // Sélectionner l'article dans le select
+                const select = document.getElementById('articleSelect');
+                if (select) {
+                    select.value = opt.value;
+                    select.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+                
+                // TODO : Envoyer la quantité à votre backend ou stocker dans une variable
+                
+                listeDiv.remove();
+            });
+            }
+            
+        });
+
+        columnsContainer.appendChild(div);
+    });
+
+    listeDiv.appendChild(columnsContainer);
+}
 
 function selectionnerArticleParNumero(numero) {
     console.log("Numéro reçu:", numero);
@@ -650,6 +924,7 @@ function afficherFournisseurFiltre(fournisseur) {
             width: 90vw;
             max-width: 1200px;
             max-height: 85vh;
+            font-size:7px;
         `;
         document.body.appendChild(listeDiv);
     }
@@ -687,6 +962,7 @@ function afficherFournisseurFiltre(fournisseur) {
             cursor: pointer;
             transition: all 0.2s;
             text-align: left;
+            font-size:7px;
         `;
         
         div.textContent = `${index + 1}. ${opt.textContent}`;
@@ -752,7 +1028,7 @@ function afficherFournisseurFiltre(fournisseur) {
                     style="
                         width: 100%;
                         padding: 12px;
-                        font-size: 1.2rem;
+                        font-size: 0.5rem;
                         border: 2px solid #007bff;
                         border-radius: 4px;
                         margin-bottom: 15px;
@@ -772,7 +1048,7 @@ function afficherFournisseurFiltre(fournisseur) {
                     style="
                         width: 100%;
                         padding: 12px;
-                        font-size: 1.2rem;
+                        font-size: 0.5rem;
                         border: 2px solid #007bff;
                         border-radius: 4px;
                         margin-bottom: 15px;
@@ -792,7 +1068,7 @@ function afficherFournisseurFiltre(fournisseur) {
                     style="
                         width: 100%;
                         padding: 12px;
-                        font-size: 1.2rem;
+                        font-size: 0.5rem;
                         border: 2px solid #007bff;
                         border-radius: 4px;
                         margin-bottom: 15px;
@@ -878,8 +1154,8 @@ function afficherFournisseurFiltre(fournisseur) {
     listeDiv.appendChild(columnsContainer);
 }
 
+function afficherArticles(articles) {
 
-function afficherListeFiltre(articles) {
     let listeDiv = document.getElementById('liste-articles-filtre');
 
     if (!listeDiv) {
@@ -892,267 +1168,161 @@ function afficherListeFiltre(articles) {
             transform: translate(-50%, -50%);
             background: white;
             border: 2px solid #333;
-            padding: 20px;
+            padding: 12px;
             border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.2);
             z-index: 9999;
-            width: 90vw;
+            width: 95vw;
             max-width: 1200px;
-            max-height: 85vh;
+            max-height: 90vh;
+            overflow: hidden;
         `;
         document.body.appendChild(listeDiv);
     }
 
-    listeDiv.innerHTML = '<h3 style="margin-bottom: 15px; font-size: 1.5rem;">Articles trouvés (dites le numéro ou cliquez) :</h3>';
+    const isMobile = window.innerWidth <= 768;
 
-    // ✅ Définir le nombre de colonnes selon le nombre d'articles
+    listeDiv.innerHTML = `
+        <h3 style="
+            margin-bottom: 15px; 
+            font-size: ${isMobile ? "1rem" : "1.5rem"};
+        ">
+            Articles trouvés (dites le numéro ou cliquez) :
+        </h3>
+    `;
+
     const nbArticles = articles.length;
-    let nbColonnes = 3; // Par défaut 3 colonnes
+    let nbColonnes;
 
-    if (nbArticles > 100) {
-        nbColonnes = 5;
-    } else if (nbArticles > 50) {
-        nbColonnes = 4;
+    if (isMobile) {
+        nbColonnes = 1; // Mobile = 1 colonne
+    } else {
+        nbColonnes = 3;
+        if (nbArticles > 100) nbColonnes = 5;
+        else if (nbArticles > 50) nbColonnes = 4;
     }
 
-    // ✅ Container avec colonnes fixes
     const columnsContainer = document.createElement('div');
     columnsContainer.style.cssText = `
         display: grid;
         grid-template-columns: repeat(${nbColonnes}, 1fr);
-        gap: 10px;
-        max-height: calc(85vh - 100px);
+        gap: 8px;
+        max-height: calc(90vh - 80px);
         overflow-y: auto;
     `;
 
     articles.forEach((opt, index) => {
+
         const div = document.createElement('div');
         div.style.cssText = `
-            padding: 12px 15px;
+            padding: ${isMobile ? "8px" : "12px"};
             background: #f8f9fa;
             border: 1px solid #dee2e6;
-            border-radius: 4px;
-            font-size: 1rem;
+            border-radius: 6px;
+            font-size: ${isMobile ? "0.85rem" : "1rem"};
             cursor: pointer;
             transition: all 0.2s;
-            text-align: left;
         `;
-        
+
         div.textContent = `${index + 1}. ${opt.textContent}`;
-        
-        // ✅ Hover effect
+
         div.addEventListener('mouseenter', () => {
             div.style.background = '#007bff';
             div.style.color = 'white';
             div.style.transform = 'scale(1.02)';
         });
-        
+
         div.addEventListener('mouseleave', () => {
             div.style.background = '#f8f9fa';
             div.style.color = 'black';
             div.style.transform = 'scale(1)';
         });
-        
-        // ✅ Clic sur l'article
+
         div.addEventListener('click', () => {
+
             let rows = document.querySelectorAll("#table-body tr");
             if (!rows.length) return;
 
             let targetRow = null;
 
-            // chercher la ligne "vide" (colonne client vide)
             rows.forEach(row => {
-                const tdClient = row.children[3]; // colonne Nom client
+                const tdClient = row.children[3];
                 if (tdClient && tdClient.innerText.trim() === "" && !targetRow) {
                     targetRow = row;
                 }
             });
 
-            // si aucune ligne vide trouvée → prendre la dernière
             if (!targetRow) {
                 targetRow = rows[rows.length - 1];
             }
+
             const code_article = targetRow.children[4];
             const nom_article = targetRow.children[5];
 
-            if(opt.textContent.includes('/')){
+            if (opt.textContent.includes('/')) {
                 const elements = opt.textContent.split('/');
-                
-                code_article.innerText   = elements[0];
-                if(elements.length>2){
-                    nom_article.innerText   = elements[1]+"/"+elements[2];
-                }else{
-                    nom_article.innerText   = elements[1];
-                }
-            }else{
-                nom_article.innerText   = opt.textContent;
+                code_article.innerText = elements[0];
+                nom_article.innerText = elements.slice(1).join('/');
+            } else {
+                nom_article.innerText = opt.textContent;
             }
-            // Sélectionner l'article dans le select original
+
             const select = document.getElementById('articleSelect');
             if (select) {
                 select.value = opt.value;
-                // Déclencher l'événement change si nécessaire
                 select.dispatchEvent(new Event('change', { bubbles: true }));
             }
-            
-            // Fermer la popup
-            listeDiv.remove();
 
-            const lblfournisseur = document.querySelector(".lblfournisseur");
-            if (lblfournisseur && lblfournisseur.innerText.trim() === "") {
-                recupererFournisseurs();
-            }else{
-                let listeDiv = document.getElementById('liste-articles-filtre');
-
-                if (!listeDiv) {
-                    listeDiv = document.createElement('div');
-                    listeDiv.id = 'liste-articles-filtre';
-                    listeDiv.style.cssText = `
-                        position: fixed;
-                        top: 50%;
-                        left: 50%;
-                        transform: translate(-50%, -50%);
-                        background: white;
-                        border: 2px solid #333;
-                        padding: 20px;
-                        border-radius: 8px;
-                        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-                        z-index: 9999;
-                        width: 90vw;
-                        max-width: 1200px;
-                        max-height: 85vh;
-                    `;
-                    document.body.appendChild(listeDiv);
-                }
-
-                listeDiv.innerHTML = '<h3 style="margin-bottom: 15px; font-size: 1.5rem;">Articles trouvés (dites le numéro ou cliquez) :</h3>';
-
-                listeDiv.innerHTML = `
-                <label for="quantite-input" style="font-size: 1.2rem; font-weight: bold; display: block; margin: 15px 0 10px;">
-                    Quelle quantité ?
+            listeDiv.innerHTML = `
+                <label style="font-size:${isMobile ? "1rem" : "1.2rem"}; font-weight:bold;">
+                    Quantité
                 </label>
-                <input 
-                    type="number" 
-                    id="quantite-input" 
-                    placeholder="Entrez la quantité"
-                    min="0"
-                    value="0"
-                    autofocus
-                    style="
-                        width: 100%;
-                        padding: 12px;
-                        font-size: 1.2rem;
-                        border: 2px solid #007bff;
-                        border-radius: 4px;
-                        margin-bottom: 15px;
-                    "
-                />
+                <input type="number" inputmode="decimal"
+                    id="quantite-input"
+                    min="0" value="0"
+                    style="width:100%; padding:10px; font-size:${isMobile ? "1rem" : "1.2rem"}; margin-bottom:12px; border:2px solid #007bff; border-radius:6px;" />
 
-                <label for="pu-input" style="font-size: 1.2rem; font-weight: bold; display: block; margin: 15px 0 10px;">
-                    Quel PU ?
+                <label style="font-size:${isMobile ? "1rem" : "1.2rem"}; font-weight:bold;">
+                    PU
                 </label>
-                <input 
-                    type="number" 
-                    id="pu-input" 
-                    placeholder="Entrez le PU"
-                    min="0"
-                    value="0"
-                    autofocus
-                    style="
-                        width: 100%;
-                        padding: 12px;
-                        font-size: 1.2rem;
-                        border: 2px solid #007bff;
-                        border-radius: 4px;
-                        margin-bottom: 15px;
-                    "
-                />
+                <input type="number" inputmode="decimal"
+                    id="pu-input"
+                    min="0" value="0"
+                    style="width:100%; padding:10px; font-size:${isMobile ? "1rem" : "1.2rem"}; margin-bottom:12px; border:2px solid #007bff; border-radius:6px;" />
 
-                <label for="remise-input" style="font-size: 1.2rem; font-weight: bold; display: block; margin: 15px 0 10px;">
-                    Quelle remise ?
+                <label style="font-size:${isMobile ? "1rem" : "1.2rem"}; font-weight:bold;">
+                    Remise
                 </label>
-                <input 
-                    type="number" 
-                    id="remise-input" 
-                    placeholder="Entrez la remise"
-                    min="0"
-                    value="0"
-                    autofocus
-                    style="
-                        width: 100%;
-                        padding: 12px;
-                        font-size: 1.2rem;
-                        border: 2px solid #007bff;
-                        border-radius: 4px;
-                        margin-bottom: 15px;
-                    "
-                />
+                <input type="number" inputmode="decimal"
+                    id="remise-input"
+                    min="0" value="0"
+                    style="width:100%; padding:10px; font-size:${isMobile ? "1rem" : "1.2rem"}; margin-bottom:15px; border:2px solid #007bff; border-radius:6px;" />
 
-                <button id="valider-quantite" style="
-                    width: 100%;
-                    padding: 12px;
-                    font-size: 1.1rem;
-                    background: #28a745;
-                    color: white;
-                    border: none;
-                    border-radius: 4px;
-                    cursor: pointer;
-                ">
+                <button id="valider-quantite"
+                    style="width:100%; padding:12px; font-size:1rem; background:#28a745; color:white; border:none; border-radius:6px;">
                     ✓ Valider
                 </button>
             `;
-            
-            // Bouton valider
+
             document.getElementById('valider-quantite').addEventListener('click', () => {
+
                 const quantite = document.getElementById('quantite-input').value || 0;
                 const pu = document.getElementById('pu-input').value || 0;
                 const remise = document.getElementById('remise-input').value || 0;
 
-                let rows = document.querySelectorAll("#table-body tr");
-                if (!rows.length) return;
+                const tdqte = targetRow.children[6];
+                const tdpu = targetRow.children[7];
+                const tdremise = targetRow.children[8];
 
-                let targetRow = null;
-
-                rows.forEach(row => {
-                    const tdClient = row.children[3];
-                    if (tdClient && tdClient.innerText.trim() === "" && !targetRow) {
-                        targetRow = row;
-                    }
-                });
-
-                // si aucune ligne vide trouvée → prendre la dernière
-                if (!targetRow) {
-                    targetRow = rows[rows.length - 1];
-                }
-                const tdqte = targetRow.children[6]; // colonne qte article
-                console.log("Qte reçu :", quantite);
                 tdqte.innerText = quantite;
-
-                const tdpu = targetRow.children[7]; // colonne pu article
-                console.log("PU reçu :", pu);
                 tdpu.innerText = pu;
-
-                const tdremise = targetRow.children[8]; // colonne remise article
-                console.log("Remise reçu :", remise);
                 tdremise.innerText = remise;
 
                 calculerTTC();
 
-                console.log(`✅ Article : ${opt.textContent}, Quantité : ${quantite}`);
-                
-                // Sélectionner l'article dans le select
-                const select = document.getElementById('articleSelect');
-                if (select) {
-                    select.value = opt.value;
-                    select.dispatchEvent(new Event('change', { bubbles: true }));
-                }
-                
-                // TODO : Envoyer la quantité à votre backend ou stocker dans une variable
-                
                 listeDiv.remove();
             });
-            }
-            
+
         });
 
         columnsContainer.appendChild(div);
@@ -1170,12 +1340,13 @@ function recupererFournisseurs(){
     const options = Array.from(selectFournisseur.options);
     let url ="";
 
-    url = `http://127.0.0.1:5000/get_fournisseur`;
-
+    //url = `https://127.0.0.1:5000/get_fournisseur`;
+    const BASE_URL = `${window.location.protocol}//${window.location.hostname}:5000`;
+    url = `${BASE_URL}/get_fournisseur`;
     /*if (type.innerHTML.includes("VENTE")) {
-        url = `http://127.0.0.1:5000/get_client`;
+        url = `https://127.0.0.1:5000/get_client`;
     }else{
-        url = `http://127.0.0.1:5000/get_fournisseur`;
+        url = `https://127.0.0.1:5000/get_fournisseur`;
     }*/
     fetch(url)
         .then(response => response.json())
@@ -1214,7 +1385,6 @@ function recupererFournisseurs(){
                     const texte = option.textContent.toLowerCase();
                     return texte;
                 });
-
                 afficherFournisseurFiltre(fournisseurFiltre);
                 
                 if (fournisseursTries.size === 0) {

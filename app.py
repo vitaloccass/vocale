@@ -9,8 +9,8 @@ import io
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
-from google.auth.transport.requests import Request
 from googleapiclient.http import MediaIoBaseUpload
+from google.auth.transport.requests import Request
 import pickle
 import requests
 
@@ -78,14 +78,23 @@ def register():
             if user:
                 flash("Nom d'utilisateur déjà utilisé")
                 return redirect(url_for("register"))
-
-            db.execute(
-                "INSERT INTO users (username, password, role,code_tsena) VALUES (?, ?, ?, ?)",
-                (username, generate_password_hash(password), ctype,code_tsena)
-            )
-            db.commit()
-            flash("Compte créé avec succès, connectez-vous")
-            return redirect(url_for("login"))
+    
+            if(ctype=="admin"):
+                db.execute(
+                    "INSERT INTO users (username, password, role, code_tsena) VALUES (?, ?, ?, ?)",
+                    (username, generate_password_hash(password), ctype, 'admin')
+                )
+                db.commit()
+                flash("Compte créé avec succès, connectez-vous")
+                return redirect(url_for("login"))
+            else:
+                db.execute(
+                    "INSERT INTO users (username, password, role, code_tsena) VALUES (?, ?, ?, ?)",
+                    (username, generate_password_hash(password), ctype, code_tsena)
+                )
+                db.commit()
+                flash("Compte créé avec succès, connectez-vous")
+                return redirect(url_for("login"))
         finally:
             db.close()
 
@@ -97,7 +106,7 @@ def login():
     if request.method == "POST":
         username = request.form.get("username", "").strip()
         password = request.form.get("password", "")
-       
+
         if not username or not password:
             flash("Champs obligatoires")
             return render_template("login.html"), 400
@@ -105,7 +114,7 @@ def login():
         db = connecter_sqlite()
         try:
             user = db.execute(
-                "SELECT id, username, password, role,code_tsena FROM users WHERE username = ?",
+                "SELECT id, username, password, role, code_tsena FROM users WHERE username = ?",
                 (username,)
             ).fetchone()
         finally:
@@ -144,7 +153,7 @@ def forgot_password():
             user = db.execute(
                 "SELECT id FROM users WHERE username = ?", (username,)
             ).fetchone()
-            
+
             if not user:
                 flash("Utilisateur non trouvé")
                 return redirect(url_for("forgot_password"))
@@ -242,7 +251,7 @@ def get_tsena():
         code_modifie = code.strip().upper().replace(' ', '')
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT code_tsena, depot, affaire,nom_tsena FROM correspondance WHERE code=?",
+            "SELECT code_tsena, depot, affaire, nom_tsena,souche FROM correspondance WHERE code=?",
             (code_modifie,)
         )
         row = cursor.fetchone()
@@ -253,6 +262,7 @@ def get_tsena():
                 "depot": "",
                 "affaire": "",
                 "nom_tsena": "",
+                "souche": "",
                 "num_fact": ""
             })
 
@@ -270,12 +280,14 @@ def get_tsena():
             "depot": row["depot"],
             "affaire": row["affaire"],
             "nom_tsena": row["nom_tsena"],
+            "souche": row["souche"],
             "num_fact": num_fact
         })
     finally:
         conn.close()
 
-# ============= GOOGLE DRIVE =============
+# ============= GOOGLE DRIVE (SERVICE ACCOUNT - MOBILE COMPATIBLE) =============
+
 
 def get_drive_service():
     """Authentification et retour du service Google Drive"""
@@ -353,7 +365,9 @@ def upload_to_drive(file_content, filename, folder_id=None, mime_type='text/plai
         }
 
         fh = io.BytesIO(file_content)
+        fh.seek(0)
         media = MediaIoBaseUpload(fh, mimetype=mime_type, resumable=True)
+        
 
         print(f"📤 Upload de '{filename}' sur Google Drive...")
 
@@ -406,8 +420,11 @@ def upload_file():
         print(f"   Date: {date_fact}")
         print(f"{'='*60}")
 
+        if not uploaded_file:
+            return jsonify({"error": "Aucun fichier reçu"}), 400
+
         file_content = uploaded_file.read()
-        
+
         folder_id = None
 
         file_id, web_link = upload_to_drive(
@@ -438,6 +455,69 @@ def download_file(filename):
     """Télécharger un fichier"""
     return send_from_directory(UPLOAD_FOLDER, filename, as_attachment=True)
 
+# ============= API EXTERNES =============
+
+@app.route('/get_fournisseur', methods=['GET'])
+def get_fournisseur():
+    conn = connecter_sqlite()
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT code_fournisseur, nom_fournisseur FROM fournisseur"
+        )
+        rows = cursor.fetchall()
+
+        if not rows:
+            return jsonify([])
+
+        # Return list of all suppliers
+        return jsonify([
+            {
+                "code_fournisseur": row[0],
+                "nom_fournisseur": row[1]
+            }
+            for row in rows
+        ])
+    finally:
+        conn.close()
+
+
+@app.route('/get_stock', methods=['GET'])
+def get_stock():
+    url = "https://api.fulleapps.io/products"
+    headers = {
+        "X-Api-Key": "LwwMBbtNxMxvdMVcX4gXRVhscf5Q4K",
+        "Authorization": "Mutual f585bd1e3b10f9a8eb7ac4c82f6478c6ae94d73a",
+        "Connection": "keep-alive"
+    }
+    params = {
+        "page": 1,
+        "offset": 10000,
+        "limit": 10000,
+        "all": 1
+    }
+
+    try:
+        response = requests.get(url, headers=headers, params=params, timeout=15)
+        response.raise_for_status()
+        data = response.json()
+
+        if 'list' in data and isinstance(data['list'], list):
+            articles_valides = [
+                article for article in data['list']
+                if article.get('archive') == 0 and article.get('name') and
+                article.get('id') and
+                str(article.get('name')).strip() != '' and
+                str(article.get('id')).strip() != ''
+            ]
+            articles_uniques = {article['id']: article for article in articles_valides}
+            data['list'] = list(articles_uniques.values())
+            print(f"✅ {len(data['list'])} articles uniques")
+
+        return jsonify(data), 200
+    except requests.exceptions.RequestException as e:
+        return jsonify({"error": str(e)}), 500
+
 # ============= INITIALISATION DB =============
 
 def init_db():
@@ -449,7 +529,8 @@ def init_db():
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 username TEXT UNIQUE NOT NULL,
                 password TEXT NOT NULL,
-                role TEXT DEFAULT 'user'
+                role TEXT DEFAULT 'user',
+                code_tsena TEXT DEFAULT ''
             )
         """)
 
@@ -468,171 +549,11 @@ def init_db():
     finally:
         db.close()
 
-@app.route('/get_points', methods=['GET'])
-def get_points(nom_tsena):
-    url = f"https://api.fulleapps.io/points_of_sale"
-    headers = {
-        "X-Api-Key": "LwwMBbtNxMxvdMVcX4gXRVhscf5Q4K",
-        "Authorization": "Mutual f585bd1e3b10f9a8eb7ac4c82f6478c6ae94d73a",
-        "Connection": "keep-alive"
-    }
-    params = {
-        "page": 1,
-        "offset": 10000,
-        "Limit": 10000,
-        "all": 1,
-        "name": nom_tsena
-    }
 
-    try:
-        response = requests.get(url, headers=headers, params=params, timeout=15)
-        response.raise_for_status()
-        data = response.json()
-
-        if data.get('list'):
-            for item in data['list']:
-                if item.get('name') == nom_tsena:
-                    print(f"✅ Trouvé: {item.get('name')} - ID: {item.get('id')}")
-                    return jsonify({"id": item.get('id')}), 200  # ✅ Retourner un objet JSON
-            
-            # ✅ Si aucun élément trouvé après la boucle
-            print(f"❌ '{nom_tsena}' non trouvé")
-            return jsonify({"error": f"Point de vente '{nom_tsena}' non trouvé"}), 404
-
-        # ✅ Si data['list'] n'existe pas
-        return jsonify({"error": "Aucune donnée disponible"}), 500
-            
-        # Si aucune donnée
-        
-
-    except requests.exceptions.RequestException as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/get_fournisseur', methods=['GET'])
-def get_fournisseur():
-    url = f"https://api.fulleapps.io/clients"
-    headers = {
-        "X-Api-Key": "LwwMBbtNxMxvdMVcX4gXRVhscf5Q4K",
-        "Authorization": "Mutual f585bd1e3b10f9a8eb7ac4c82f6478c6ae94d73a",
-        "Connection": "keep-alive"
-    }
-    params = {
-        "page": 1,
-        "offset": 10000,
-        "Limit": 10000,
-        "all": 1,
-        "supplier":1
-    }
-
-    try:
-        response = requests.get(url, headers=headers, params=params, timeout=15)
-        response.raise_for_status()
-        data = response.json()
-
-        return jsonify(data), 200
-
-    except requests.exceptions.RequestException as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/get_stock', methods=['GET'])
-def get_stock():
-    name_tsena = request.args.get('name_tsena', '').strip()
-    url = f"https://api.fulleapps.io/products"
-    headers = {
-        "X-Api-Key": "LwwMBbtNxMxvdMVcX4gXRVhscf5Q4K",
-        "Authorization": "Mutual f585bd1e3b10f9a8eb7ac4c82f6478c6ae94d73a",
-        "Connection": "keep-alive"
-    }
-    params = {
-        "page": 1,
-        "offset": 10000,
-        "Limit": 10000,
-        "all": 1,
-        #"id_point_of_sale": id_point_of_sale
-    }
-
-    try:
-        response = requests.get(url, headers=headers, params=params, timeout=15)
-        response.raise_for_status()
-        data = response.json()
-
-        # ✅ FILTRER les articles invalides côté serveur
-        if 'list' in data and isinstance(data['list'], list):
-            # ✅ Filtrer les valeurs vides
-            articles_valides = [
-                article for article in data['list']
-                if article.get('name') and 
-                article.get('id') and
-                str(article.get('name')).strip() != '' and
-                str(article.get('id')).strip() != ''
-            ]
-        
-            # ✅ Éliminer les doublons par ID
-            articles_uniques = {article['id']: article for article in articles_valides}
-            data['list'] = list(articles_uniques.values())
-            
-            print(f"✅ {len(data['list'])} articles uniques")
-        
-        return jsonify(data), 200
-
-    except requests.exceptions.RequestException as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/get_points')
-def get_points_route():
-    nom_tsena = request.args.get('name', '').strip()
-    if not nom_tsena:
-        return jsonify({"error": "Nom manquant"}), 400
-
-    point_id = get_point_id(nom_tsena)
-    if not point_id:
-        return jsonify({"error": "Point non trouvé"}), 404
-
-    return jsonify({"id": point_id}), 200
-
-
-def get_point_id(nom_tsena):
-    url = "https://api.fulleapps.io/points_of_sale"
-    headers = {
-        "X-Api-Key": "LwwMBbtNxMxvdMVcX4gXRVhscf5Q4K",
-        "Authorization": "Mutual f585bd1e3b10f9a8eb7ac4c82f6478c6ae94d73a",
-    }
-    params = {
-        "page": 1,
-        "offset": 10000,
-        "limit": 10000,
-        "all": 1,
-        "name": nom_tsena
-    }
-
-    try:
-        r = requests.get(url, headers=headers, params=params, timeout=15)
-        r.raise_for_status()
-        data = r.json()
-
-        for item in data.get("list", []):
-            if item.get("name") == nom_tsena:
-                return item.get("id")
-
-        return None
-    except Exception as e:
-        print(f"Erreur get_point_id({nom_tsena}) : {e}")
-        return None
-# ============= DÉMARRAGE ============= #
+# ============= DÉMARRAGE =============
 
 if __name__ == '__main__':
-    print("\n" + "="*60)
-    print("🚀 Démarrage du serveur Flask...")
-    print("="*60 + "\n")
-    
-    # Initialiser la base de données
     init_db()
-    
-    # Vérifier credentials.json
-    if not os.path.exists('credentials.json'):
-        print("⚠️  ATTENTION: credentials.json non trouvé!")
-        print("   Téléchargez-le depuis Google Cloud Console\n")
-    
-    # Lancer l'application
-    #app.run(debug=True, host="0.0.0.0", port=5000)
-    app.run(host='0.0.0.0', port=5000, ssl_context='adhoc')
+    app.run(host='0.0.0.0', port=5000, debug=True, ssl_context='adhoc')
+    # Pour la production avec HTTPS, utilisez nginx + certbot (Let's Encrypt)
+    # NE PAS utiliser ssl_context='adhoc' en production

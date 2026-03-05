@@ -1,6 +1,12 @@
 let recognition;
 let isListening = false;
 let recs_tsena= "";
+let rec_souche="";
+let recup_tsena="";
+let rec_code_tsena="";
+let rec_depot="";
+let rec_num_fact="";
+let rec_affaire="";
 
 let facture = {
     type:"",
@@ -380,7 +386,7 @@ function afficherListeFiltre(articles) {
                 listeDiv.innerHTML = '<h3 style="margin-bottom: 15px; font-size: 1.5rem;">Articles trouvés (dites le numéro ou cliquez) :</h3>';
 
                 listeDiv.innerHTML = `
-                <label for="quantite-input" style="font-size: 1.2rem; font-weight: bold; display: block; margin: 15px 0 10px;">
+                <label for="quantite-input" style="font-size: 0.8rem; font-weight: bold; display: block; margin: 15px 0 10px;">
                     Quelle quantité ?
                 </label>
                 <input 
@@ -393,14 +399,14 @@ function afficherListeFiltre(articles) {
                     style="
                         width: 100%;
                         padding: 12px;
-                        font-size: 1.2rem;
+                        font-size: 0.8rem;
                         border: 2px solid #007bff;
                         border-radius: 4px;
                         margin-bottom: 15px;
                     "
                 />
 
-                <label for="pu-input" style="font-size: 1.2rem; font-weight: bold; display: block; margin: 15px 0 10px;">
+                <label for="pu-input" style="font-size: 0.8rem; font-weight: bold; display: block; margin: 15px 0 10px;">
                     Quel PU ?
                 </label>
                 <input 
@@ -413,14 +419,14 @@ function afficherListeFiltre(articles) {
                     style="
                         width: 30%;
                         padding: 12px;
-                        font-size: 0.2rem;
+                        font-size: 0.8rem;
                         border: 2px solid #007bff;
                         border-radius: 4px;
                         margin-bottom: 15px;
                     "
                 />
 
-                <label for="remise-input" style="font-size: 1.2rem; font-weight: bold; display: block; margin: 15px 0 10px;">
+                <label for="remise-input" style="font-size: 0.8rem; font-weight: bold; display: block; margin: 15px 0 10px;">
                     Quelle remise ?
                 </label>
                 <input 
@@ -433,7 +439,7 @@ function afficherListeFiltre(articles) {
                     style="
                         width: 30%;
                         padding: 12px;
-                        font-size: 0.2rem;
+                        font-size: 0.8rem;
                         border: 2px solid #007bff;
                         border-radius: 4px;
                         margin-bottom: 15px;
@@ -443,7 +449,7 @@ function afficherListeFiltre(articles) {
                 <button id="valider-quantite" style="
                     width: 30%;
                     padding: 12px;
-                    font-size: 0.2rem;
+                    font-size: 0.8rem;
                     background: #28a745;
                     color: white;
                     border: none;
@@ -605,7 +611,7 @@ function selectionnerArticleParNumero(numero) {
         }
 
         listeDiv.innerHTML = `
-            <label for="quantite-input" style="font-size: 1.2rem; font-weight: bold; display: block; margin: 15px 0 10px;">
+            <label for="quantite-input" style="font-size: 0.8rem; font-weight: bold; display: block; margin: 15px 0 10px;">
                 Quelle quantité ?
             </label>
             <input 
@@ -618,14 +624,14 @@ function selectionnerArticleParNumero(numero) {
                 style="
                     width: 100%;
                     padding: 12px;
-                    font-size: 1.2rem;
+                    font-size: 0.8rem;
                     border: 2px solid #007bff;
                     border-radius: 4px;
                     margin-bottom: 15px;
                 "
             />
 
-            <label for="pu-input" style="font-size: 1.2rem; font-weight: bold; display: block; margin: 15px 0 10px;">
+            <label for="pu-input" style="font-size: 0.8rem; font-weight: bold; display: block; margin: 15px 0 10px;">
                 Quel PU ?
             </label>
             <input 
@@ -638,14 +644,14 @@ function selectionnerArticleParNumero(numero) {
                 style="
                     width: 100%;
                     padding: 12px;
-                    font-size: 1.2rem;
+                    font-size: 0.8rem;
                     border: 2px solid #007bff;
                     border-radius: 4px;
                     margin-bottom: 15px;
                 "
             />
 
-            <label for="remise-input" style="font-size: 1.2rem; font-weight: bold; display: block; margin: 15px 0 10px;">
+            <label for="remise-input" style="font-size: 0.8rem; font-weight: bold; display: block; margin: 15px 0 10px;">
                 Quelle remise ?
             </label>
             <input 
@@ -658,7 +664,7 @@ function selectionnerArticleParNumero(numero) {
                 style="
                     width: 100%;
                     padding: 12px;
-                    font-size: 1.2rem;
+                    font-size: 0.8rem;
                     border: 2px solid #007bff;
                     border-radius: 4px;
                     margin-bottom: 15px;
@@ -668,7 +674,7 @@ function selectionnerArticleParNumero(numero) {
             <button id="valider-quantite" style="
                 width: 100%;
                 padding: 12px;
-                font-size: 1.1rem;
+                font-size: 0.8rem;
                 background: #28a745;
                 color: white;
                 border: none;
@@ -780,7 +786,7 @@ function selectionnerFournisseurParNumero(numero) {
 
     // Afficher le formulaire quantité
     listeDiv.innerHTML = `
-        <label for="quantite-input" style="font-size: 1.2rem; font-weight: bold; display: block; margin: 15px 0 10px;">
+        <label for="quantite-input" style="font-size: 0.8rem; font-weight: bold; display: block; margin: 15px 0 10px;">
             Quelle quantité ?
         </label>
         <input 
@@ -793,14 +799,14 @@ function selectionnerFournisseurParNumero(numero) {
             style="
                 width: 100%;
                 padding: 12px;
-                font-size: 1.2rem;
+                font-size: 0.8rem;
                 border: 2px solid #007bff;
                 border-radius: 4px;
                 margin-bottom: 15px;
             "
         />
 
-        <label for="pu-input" style="font-size: 1.2rem; font-weight: bold; display: block; margin: 15px 0 10px;">
+        <label for="pu-input" style="font-size: 0.8rem; font-weight: bold; display: block; margin: 15px 0 10px;">
             Quel PU ?
         </label>
         <input 
@@ -813,14 +819,14 @@ function selectionnerFournisseurParNumero(numero) {
             style="
                 width: 100%;
                 padding: 12px;
-                font-size: 1.2rem;
+                font-size: 0.8rem;
                 border: 2px solid #007bff;
                 border-radius: 4px;
                 margin-bottom: 15px;
             "
         />
 
-        <label for="remise-input" style="font-size: 1.2rem; font-weight: bold; display: block; margin: 15px 0 10px;">
+        <label for="remise-input" style="font-size: 0.8rem; font-weight: bold; display: block; margin: 15px 0 10px;">
             Quelle remise ?
         </label>
         <input 
@@ -833,7 +839,7 @@ function selectionnerFournisseurParNumero(numero) {
             style="
                 width: 100%;
                 padding: 12px;
-                font-size: 1.2rem;
+                font-size: 0.8rem;
                 border: 2px solid #007bff;
                 border-radius: 4px;
                 margin-bottom: 15px;
@@ -843,7 +849,7 @@ function selectionnerFournisseurParNumero(numero) {
         <button id="valider-quantite" style="
             width: 100%;
             padding: 12px;
-            font-size: 1.1rem;
+            font-size: 0.8rem;
             background: #28a745;
             color: white;
             border: none;
@@ -1015,7 +1021,7 @@ function afficherFournisseurFiltre(fournisseur) {
             // Afficher le formulaire quantité
             listeDiv.innerHTML = `
                 <h3>Article sélectionné : ${opt.textContent}</h3>
-                <label for="quantite-input" style="font-size: 1.2rem; font-weight: bold; display: block; margin: 15px 0 10px;">
+                <label for="quantite-input" style="font-size: 0.8rem; font-weight: bold; display: block; margin: 15px 0 10px;">
                     Quelle quantité ?
                 </label>
                 <input 
@@ -1028,14 +1034,14 @@ function afficherFournisseurFiltre(fournisseur) {
                     style="
                         width: 100%;
                         padding: 12px;
-                        font-size: 0.5rem;
+                        font-size: 0.8rem;
                         border: 2px solid #007bff;
                         border-radius: 4px;
                         margin-bottom: 15px;
                     "
                 />
 
-                <label for="pu-input" style="font-size: 1.2rem; font-weight: bold; display: block; margin: 15px 0 10px;">
+                <label for="pu-input" style="font-size: 0.8rem; font-weight: bold; display: block; margin: 15px 0 10px;">
                     Quel PU ?
                 </label>
                 <input 
@@ -1048,14 +1054,14 @@ function afficherFournisseurFiltre(fournisseur) {
                     style="
                         width: 100%;
                         padding: 12px;
-                        font-size: 0.5rem;
+                        font-size: 0.8rem;
                         border: 2px solid #007bff;
                         border-radius: 4px;
                         margin-bottom: 15px;
                     "
                 />
 
-                <label for="remise-input" style="font-size: 1.2rem; font-weight: bold; display: block; margin: 15px 0 10px;">
+                <label for="remise-input" style="font-size: 0.8rem; font-weight: bold; display: block; margin: 15px 0 10px;">
                     Quelle remise ?
                 </label>
                 <input 
@@ -1068,7 +1074,7 @@ function afficherFournisseurFiltre(fournisseur) {
                     style="
                         width: 100%;
                         padding: 12px;
-                        font-size: 0.5rem;
+                        font-size: 0.8rem;
                         border: 2px solid #007bff;
                         border-radius: 4px;
                         margin-bottom: 15px;
@@ -1078,7 +1084,7 @@ function afficherFournisseurFiltre(fournisseur) {
                 <button id="valider-quantite" style="
                     width: 100%;
                     padding: 12px;
-                    font-size: 1.1rem;
+                    font-size: 0.8rem;
                     background: #28a745;
                     color: white;
                     border: none;
@@ -1340,56 +1346,52 @@ function recupererFournisseurs(){
     const options = Array.from(selectFournisseur.options);
     let url ="";
 
-    //url = `https://127.0.0.1:5000/get_fournisseur`;
     const BASE_URL = `${window.location.protocol}//${window.location.hostname}:5000`;
     url = `${BASE_URL}/get_fournisseur`;
-    /*if (type.innerHTML.includes("VENTE")) {
-        url = `https://127.0.0.1:5000/get_client`;
-    }else{
-        url = `https://127.0.0.1:5000/get_fournisseur`;
-    }*/
+
     fetch(url)
         .then(response => response.json())
         .then(data => {
             //selectFournisseur.innerHTML = '<option value="">-- Sélectionner un fournisseur --</option>';
-            
-            if (data.list && Array.isArray(data.list)) {
+            if (data && Array.isArray(data)) {
+                // ✅ Check empty array early
+                if (data.length === 0) {
+                    selectFournisseur.innerHTML = '<option value="">Aucun fournisseur disponible</option>';
+                    return;
+                }
+
                 // Filtrer et dédupliquer
                 const fournisseursUniques = new Set();
 
-                data.list.forEach(fournisseur => {
-                    const name = String(fournisseur.id +'/'+ fournisseur.fullname || "").trim();
-                    if (name) fournisseursUniques.add(name);
+                // ✅ Iterate directly on `data`, not `data.list`
+                data.forEach(fournisseur => {
+                    const name = String(
+                        (fournisseur.code_fournisseur ?? "") + '/' + (fournisseur.nom_fournisseur ?? "")
+                    ).trim();
+                    if (name && name !== '/') fournisseursUniques.add(name);
                 });
 
-                // 🔹 Tri alphabétique
+                // Tri alphabétique
                 const fournisseursTries = [...fournisseursUniques].sort(
                     (a, b) => a.localeCompare(b, "fr", { sensitivity: "base" })
                 );
 
-                // 🔹 Reset du select
-                //selectFournisseur.innerHTML =
-                 //   '<option value="">-- Sélectionner un fournisseur --</option>';
+                // Reset du select
+                selectFournisseur.innerHTML = '<option value="">-- Sélectionner un fournisseur --</option>';
 
-                // 🔹 Ajout au select
+                // Ajout au select
                 fournisseursTries.forEach(name => {
                     const option = document.createElement("option");
                     option.value = name;
                     option.textContent = name;
                     selectFournisseur.appendChild(option);
                 });
-                
+
+                // ✅ Filter with an actual condition (example: exclude placeholder)
                 const options = Array.from(selectFournisseur.options);
-    
-                fournisseurFiltre = options.filter(option => {
-                    const texte = option.textContent.toLowerCase();
-                    return texte;
-                });
-                afficherFournisseurFiltre(fournisseurFiltre);
+                fournisseurFiltre = options.filter(option => option.value !== "");
                 
-                if (fournisseursTries.size === 0) {
-                    selectFournisseur.innerHTML = '<option value="">Aucun fournisseur disponible</option>';
-                }
+                afficherFournisseurFiltre(fournisseurFiltre);
             }
         })
         .catch(err => {
@@ -1526,6 +1528,36 @@ function afficher_magasins(magasins) {
                     case 10 :code=181290;break;
                     case 11 :code=183405;break;
                 }
+
+                recup_code_tsena(code, data => {
+                    const lblMagasin = document.querySelector(".lblmagasin");
+                    const lbldepot = document.querySelector(".lbldepot");
+                    const lblaffaire = document.querySelector(".lblaffaire");
+                    const lblnumfact = document.querySelector(".lblnum_fact");
+                    const lblfournisseur = document.querySelector(".lblfournisseur");
+
+                    if(ctype.textContent.trim() !== "user"){
+                        lblMagasin.innerText = data.code_tsena;
+                    }else{
+                        lblMagasin.innerText = data.nom_tsena;
+                        lblfournisseur.innerHTML=data.nom_tsena;
+                    }
+                    lbldepot.innerText = data.depot;
+                    lblaffaire.innerText = data.affaire;
+                    lblnumfact.innerText = data.num_fact;
+
+                    const rec = lblMagasin.innerText;
+                    const rec1 = lbldepot.innerText;
+                    const rec2 = lblaffaire.innerText;
+                    const rec3 = lblnumfact.innerText;
+
+                    tdtsena.innerText   = rec;
+                    tdDepot.innerText   = rec1;
+                    tdAffaire.innerText = rec2;
+                    tdNumFact.innerText = rec3;
+
+                    nom_tsena=data.nom_tsena;
+                });
                     
                 let rows = document.querySelectorAll("#table-body tr");
                 if (!rows.length) return;
@@ -1567,35 +1599,32 @@ function afficher_magasins(magasins) {
                 const tdNumFact = targetRow.children[0]; // colonne numero facture
                 const tdDepot = targetRow.children[11]; // colonne depot
                 const tdAffaire = targetRow.children[12]; // colonne affaire
-                recup_code_tsena(code, data => {
-                    const lblMagasin = document.querySelector(".lblmagasin");
-                    const lbldepot = document.querySelector(".lbldepot");
-                    const lblaffaire = document.querySelector(".lblaffaire");
-                    const lblnumfact = document.querySelector(".lblnum_fact");
-                    const lblfournisseur = document.querySelector(".lblfournisseur");
 
-                    if(ctype.textContent.trim() !== "user"){
-                        lblMagasin.innerText = data.code_tsena;
-                    }else{
-                        lblMagasin.innerText = data.nom_tsena;
-                        lblfournisseur.innerHTML=data.nom_tsena;
-                    }
-                    lbldepot.innerText = data.depot;
-                    lblaffaire.innerText = data.affaire;
-                    lblnumfact.innerText = data.num_fact;
+                const lblMagasin = document.querySelector(".lblmagasin");
+                const lbldepot = document.querySelector(".lbldepot");
+                const lblaffaire = document.querySelector(".lblaffaire");
+                const lblnumfact = document.querySelector(".lblnum_fact");
+                const lblfournisseur = document.querySelector(".lblfournisseur");
 
-                    const rec = lblMagasin.innerText;
-                    const rec1 = lbldepot.innerText;
-                    const rec2 = lblaffaire.innerText;
-                    const rec3 = lblnumfact.innerText;
+                if(ctype.textContent.trim() !== "user"){
+                    lblMagasin.innerText = rec_code_tsena;
+                }else{
+                    lblMagasin.innerText = recup_tsena;
+                    lblfournisseur.innerHTML=recup_tsena;
+                }
+                lbldepot.innerText = rec_depot;
+                lblaffaire.innerText = rec_affaire;
+                lblnumfact.innerText = rec_num_fact;
 
-                    tdtsena.innerText   = rec;
-                    tdDepot.innerText   = rec1;
-                    tdAffaire.innerText = rec2;
-                    tdNumFact.innerText = rec3;
+                const rec = lblMagasin.innerText;
+                const rec1 = lbldepot.innerText;
+                const rec2 = lblaffaire.innerText;
+                const rec3 = lblnumfact.innerText;
 
-                    nom_tsena=data.nom_tsena;
-                });
+                tdtsena.innerText   = rec;
+                tdDepot.innerText   = rec1;
+                tdAffaire.innerText = rec2;
+                tdNumFact.innerText = rec3;
                 
                 // Fermer la liste
                 const listeDiv = document.getElementById('liste-magasins-filtre');
@@ -1682,6 +1711,7 @@ function selectionnermagasin(numero){
     const tdNumFact = targetRow.children[0]; // colonne numero facture
     const tdDepot = targetRow.children[11]; // colonne depot
     const tdAffaire = targetRow.children[12]; // colonne affaire
+
     recup_code_tsena(code, data => {
         const lblMagasin = document.querySelector(".lblmagasin");
         const lbldepot = document.querySelector(".lbldepot");
@@ -1695,6 +1725,7 @@ function selectionnermagasin(numero){
             lblMagasin.innerText = data.nom_tsena;
             lblfournisseur.innerHTML=data.nom_tsena;
         }
+
         lbldepot.innerText = data.depot;
         lblaffaire.innerText = data.affaire;
         lblnumfact.innerText = data.num_fact;
@@ -1711,8 +1742,7 @@ function selectionnermagasin(numero){
 
         nom_tsena=data.nom_tsena;
     });
-       
-    
+
     // Fermer la liste
     const listeDiv = document.getElementById('liste-magasins-filtre');
     if (listeDiv) {
@@ -1859,29 +1889,27 @@ function traiterChoixdebut(choix) {
             const valeur = document.getElementById('tsena');
             const code = valeur.textContent.trim();
 
-            recup_code_tsena(code, data => {
-                const lblMagasin = document.querySelector(".lblmagasin");
-                const lbldepot = document.querySelector(".lbldepot");
-                const lblaffaire = document.querySelector(".lblaffaire");
-                const lblnumfact = document.querySelector(".lblnum_fact");
+            const lblMagasin = document.querySelector(".lblmagasin");
+            const lbldepot = document.querySelector(".lbldepot");
+            const lblaffaire = document.querySelector(".lblaffaire");
+            const lblnumfact = document.querySelector(".lblnum_fact");
 
-                lblMagasin.innerText = data.code_tsena;
-                lbldepot.innerText = data.depot;
-                lblaffaire.innerText = data.affaire;
-                lblnumfact.innerText = data.num_fact;
+            lblMagasin.innerText = rec_code_tsena;
+            lbldepot.innerText = rec_depot;
+            lblaffaire.innerText = rec_affaire;
+            lblnumfact.innerText = rec_num_fact;
 
-                const rec = lblMagasin.innerText;
-                const rec1 = lbldepot.innerText;
-                const rec2 = lblaffaire.innerText;
-                const rec3 = lblnumfact.innerText;
+            const rec = lblMagasin.innerText;
+            const rec1 = lbldepot.innerText;
+            const rec2 = lblaffaire.innerText;
+            const rec3 = lblnumfact.innerText;
 
-                tdtsena.innerText   = rec;
-                tdDepot.innerText   = rec1;
-                tdAffaire.innerText = rec2;
-                tdNumFact.innerText = rec3;
+            tdtsena.innerText   = rec;
+            tdDepot.innerText   = rec1;
+            tdAffaire.innerText = rec2;
+            tdNumFact.innerText = rec3;
 
-                nom_tsena=data.nom_tsena;
-            });
+            nom_tsena=data.nom_tsena;
 
             afficher_magasins(magasinsFiltre);
         }
@@ -2181,29 +2209,27 @@ function selectionnerDebut(numero) {
         const valeur = document.getElementById('tsena');
         const code = valeur.textContent.trim();
 
-        recup_code_tsena(code, data => {
-            const lblMagasin = document.querySelector(".lblmagasin");
-            const lbldepot = document.querySelector(".lbldepot");
-            const lblaffaire = document.querySelector(".lblaffaire");
-            const lblnumfact = document.querySelector(".lblnum_fact");
+        const lblMagasin = document.querySelector(".lblmagasin");
+        const lbldepot = document.querySelector(".lbldepot");
+        const lblaffaire = document.querySelector(".lblaffaire");
+        const lblnumfact = document.querySelector(".lblnum_fact");
 
-            lblMagasin.innerText = data.code_tsena;
-            lbldepot.innerText = data.depot;
-            lblaffaire.innerText = data.affaire;
-            lblnumfact.innerText = data.num_fact;
+        lblMagasin.innerText = rec_code_tsena;
+        lbldepot.innerText = rec_depot;
+        lblaffaire.innerText = rec_affaire;
+        lblnumfact.innerText = rec_num_fact;
 
-            const rec = lblMagasin.innerText;
-            const rec1 = lbldepot.innerText;
-            const rec2 = lblaffaire.innerText;
-            const rec3 = lblnumfact.innerText;
+        const rec = lblMagasin.innerText;
+        const rec1 = lbldepot.innerText;
+        const rec2 = lblaffaire.innerText;
+        const rec3 = lblnumfact.innerText;
 
-            tdtsena.innerText   = rec;
-            tdDepot.innerText   = rec1;
-            tdAffaire.innerText = rec2;
-            tdNumFact.innerText = rec3;
+        tdtsena.innerText   = rec;
+        tdDepot.innerText   = rec1;
+        tdAffaire.innerText = rec2;
+        tdNumFact.innerText = rec3;
 
-            nom_tsena=data.nom_tsena;
-        });
+        nom_tsena=data.nom_tsena;
 
         afficher_magasins(magasinsFiltre);
     }
@@ -2302,7 +2328,7 @@ function traiterCommande(transcript) {
         const numero = parseInt(convertirMotsEnChiffres(cmd));
         // Vérifier si la liste de début est affichée
         const listeDebut = document.getElementById('liste-debut-filtre');
-        recs_tsena=recuperer_nom_tsena();
+        recs_tsena=recup_tsena;
         if (listeDebut) {
             // Si la liste de début est affichée, sélectionner vente/achat
             selectionnerDebut(numero);
@@ -2375,6 +2401,12 @@ function recup_code_tsena(code, callback) {
     .then(r => r.json())
     .then(data => {
         console.log(data);
+        rec_code_tsena=data.code_tsena;
+        rec_affaire=data.affaire;
+        rec_depot=data.depot;
+        rec_num_fact=data.num_fact;
+        recup_tsena=data.nom_tsena;
+        rec_souche=data.souche;
         if (callback) callback(data);
     })
     .catch(err => {
@@ -2384,26 +2416,10 @@ function recup_code_tsena(code, callback) {
             depot: "",
             affaire: "",
             nom_tsena: "",
-            num_fact: ""
+            num_fact: "",
+            souche:""
         });
     });
-}
-
-function copierCodeTsena() {
-    const table = document.querySelector("table"); // Sélectionne ton tableau
-    const rows = table.rows;
-    
-    if (rows.length < 2) return; // Pas de ligne à copier
-
-    const premiereValeur = rows[1].cells[2].textContent.trim(); // 3ᵉ cellule de la première ligne de données
-    
-    // Parcours toutes les lignes sauf l'en-tête et la première ligne
-    for (let i = 2; i < rows.length; i++) {
-        const td = rows[i].cells[2]; // 3ᵉ colonne
-        if (td) {
-            td.textContent = premiereValeur;
-        }
-    }
 }
 
 function ajouterLigne() {
@@ -2480,10 +2496,10 @@ function ajouterLigne() {
                 console.warn("⚠ lblfournisseur introuvable !");
             } else {
                 const rec = lblfournisseur.textContent.trim();
-                console.log("Valeur récupérée :", rec);
+                const recup=rec.split('/');
 
                 if (td) {
-                    td.textContent = rec;
+                    td.textContent = recup[1];
                 } else {
                     console.warn("⚠ td introuvable !");
                 }
@@ -2598,24 +2614,13 @@ function clean(str) {
     return str.replace(/[^a-z0-9-_]/gi, '_');
 }
 
-function recuperer_nom_tsena() {
-    const valeur = document.getElementById('tsena');
-    const code = valeur.textContent.trim();
-    
-    recup_code_tsena(code, data => {
-        nom_tsena=data.nom_tsena;
-    });
-
-    return nom_tsena;
-}
-
 function exporterTXT() {
     let trs = document.querySelectorAll("#table-body tr");
     let lines = [];
 
     const lblMagasin = document.querySelector(".lblmagasin");
     const lbltype = document.querySelector(".lbltype");
-    
+
     const rec = lblMagasin ? lblMagasin.innerText.trim() : "unknown";
     const recs = lbltype ? lbltype.textContent.trim() : "unknown";
     let nomClient = "";
@@ -2624,80 +2629,106 @@ function exporterTXT() {
     trs.forEach(tr => {
         let tds = tr.querySelectorAll("td");
         if (tds[3].innerText.trim() !== "") {
-            let numFact = tds[0].innerText.trim();
-            dateFact = tds[1].innerText.trim().split('-').reverse().join('/');
-            nomClient = tds[3].innerText.trim();
-            let tsena = tds[2].innerText.trim();
-            let ref = tds[4].innerText.trim();
-            let article = tds[5].innerText.trim();
-            let qte = tds[6].innerText.trim();
-            let pu = tds[7].innerText.trim();
-            let remise = tds[8].innerText.trim();
-            let depot = tds[11].innerHTML;
-            let affaire = tds[12].innerHTML;
-            let code_fournisseur = tds[13].innerHTML;
+            let numFact  = tds[0].innerText.trim();
+            dateFact     = tds[1].innerText.trim().split('-').reverse().join('/');
+            nomClient    = tds[3].innerText.trim();
+            let tsena    = tds[2].innerText.trim();
+            let ref      = tds[4].innerText.trim();
+            let article  = tds[5].innerText.trim();
+            let qte      = tds[6].innerText.trim();
+            let pu       = tds[7].innerText.trim();
+            let remise   = tds[8].innerText.trim();
+            let depot    = tds[11].innerHTML;
+            let affaire  = tds[12].innerHTML;
+            let code_fournisseur = tds[13] ? tds[13].innerHTML : "";
 
-            let mtt = Number(qte) * Number(pu) * (1 - Number(remise)/100);
-            if (recs.toLocaleLowerCase().includes("vente")){
-                lines.push(
-                    `1\t6\t${numFact}\t${dateFact}\t${tsena}\t${nomClient}\t${ref}\t${article}\t${pu}\t${qte}\t${remise}\t${mtt.toFixed(2)}\t0\t${depot}\t${affaire}\t1`
-                );
-            }else{
-                if (recs.toLocaleLowerCase().includes("bc")){
-                    lines.push(
-                        `1\t12\t${numFact}\t${dateFact}\t${code_fournisseur}\t${nomClient}\t${ref}\t${article}\t${pu}\t${qte}\t${remise}\t${mtt.toFixed(2)}\t0\t${depot}\t${affaire}\t1`
-                    );
-                }else{
-                     lines.push(
-                        `1\t16\t${numFact}\t${dateFact}\t${code_fournisseur}\t${nomClient}\t${ref}\t${article}\t${pu}\t${qte}\t${remise}\t${mtt.toFixed(2)}\t0\t${depot}\t${affaire}\t1`
-                    );
-                }
+            let mtt = Number(qte) * Number(pu) * (1 - Number(remise) / 100);
 
+            if (recs.toLowerCase().includes("vente")) {
+                lines.push(`1\t6\t${numFact}\t${dateFact}\t${tsena}\t${nomClient}\t${ref}\t${article}\t${pu}\t${qte}\t${remise}\t${depot}\t${affaire}\t${rec_souche}`);
+            } else if (recs.toLowerCase().includes("bc")) {
+                lines.push(`1\t12\t${numFact}\t${dateFact}\t${code_fournisseur}\t${nomClient}\t${ref}\t${article}\t${pu}\t${qte}\t${remise}\t${depot}\t${affaire}`);
+            } else {
+                lines.push(`1\t16\t${numFact}\t${dateFact}\t${code_fournisseur}\t${nomClient}\t${ref}\t${article}\t${pu}\t${qte}\t${remise}\t${depot}\t${affaire}`);
             }
         }
     });
 
-    
     const content = lines.join("\n");
-    let filename ='';
 
-    if (recs.includes("vente")){
-        filename = `VENTE_${rec}_${nomClient}_${dateFact}.txt`;
-    }else{
-        if (recs.includes("BC")){
+    // ✅ Fonction qui construit formData et envoie
+    function envoyerFichier(tsenaFinal) {
+        let filename = '';
+        if (recs.toLowerCase().includes("vente")) {
+            filename = `VENTE_${rec}_${nomClient}_${dateFact}.txt`;
+        } else if (recs.toLowerCase().includes("bc")) {
             filename = `BC_ACHAT_${rec}_${nomClient}_${dateFact}.txt`;
-        }else{
+        } else {
             filename = `FA_ACHAT_${rec}_${nomClient}_${dateFact}.txt`;
         }
+
+        const blob = new Blob([content], { type: "text/plain" });
+        const formData = new FormData();
+        formData.append("file", blob, filename);
+        formData.append("rec", rec);
+        formData.append("recs", recs);
+        formData.append("nom_client", nomClient);
+        formData.append("date_fact", dateFact);
+        formData.append("tsena", tsenaFinal);
+        
+        blob.text().then(text => {
+            console.log("📄 Contenu du blob :", text); // doit afficher tes données
+        });
+
+        console.log("📤 Envoi avec tsena:", tsenaFinal);
     }
 
-    recs_tsena=recuperer_nom_tsena();
+    // ✅ Récupérer tsena puis envoyer
+    const valeur = document.getElementById('tsena');
+    const code = valeur.textContent.trim();
+
+    const tsenaFinal = (recup_tsena || "").replace('LOCCA ', '');
+    envoyerFichier(tsenaFinal);
+
+    let filename = '';
+    if (recs.toLowerCase().includes("vente")) {
+        filename = `VENTE_${rec}_${nomClient}_${dateFact}.txt`;
+    } else if (recs.toLowerCase().includes("bc")) {
+        filename = `BC_ACHAT_${rec}_${nomClient}_${dateFact}.txt`;
+    } else {
+        filename = `FA_ACHAT_${rec}_${nomClient}_${dateFact}.txt`;
+    }
 
     const blob = new Blob([content], { type: "text/plain" });
-
     const formData = new FormData();
     formData.append("file", blob, filename);
     formData.append("rec", rec);
     formData.append("recs", recs);
     formData.append("nom_client", nomClient);
     formData.append("date_fact", dateFact);
-    formData.append('tsena',recs_tsena.replace('LOCCA ',''));
+    formData.append("tsena", tsenaFinal); // ✅ valeur correcte ici
+
+    const BASE_URL = `${window.location.protocol}//${window.location.hostname}:5000`;
+    const url = `${BASE_URL}/upload`;
 
     fetch("/upload", {
         method: "POST",
         body: formData
     })
-    .then(response => response.json())
+    .then(response => response.json())   // ← conversion en JSON obligatoire
     .then(data => {
         if (data.success) {
-            console.log("✅ Upload Drive OK :", data.link);
-            window.open(data.link, "_blank"); // ouvrir le fichier Drive
+            console.log("✅ Upload OK :", data.link);
+            window.open(data.link, "_blank");
         } else {
             console.error("❌ Upload échoué :", data.error);
+            alert("Erreur upload : " + data.error);
         }
     })
-    .catch(err => console.error("Erreur upload:", err));
-
+    .catch(err => {
+        console.error("❌ Erreur fetch :", err);
+        alert("Erreur fetch : " + err.message);
+    });
 }
 
 

@@ -80,12 +80,15 @@ if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
 
     recognition.onend = () => {
         if (isListening) {
-            // relancer automatiquement si on est censé écouter
-            try {
-                recognition.start();
-            } catch(e) {
-                console.log("restart error:", e);
-            }
+            setTimeout(() => {
+                try {
+                    recognition.start();
+                } catch(e) {
+                    if (e.name !== 'InvalidStateError') {
+                        console.error("Mic restart error:", e);
+                    }
+                }
+            }, 300);
         } else {
             const btn = document.getElementById("micBtn");
             btn.classList.remove("listening");
@@ -93,9 +96,25 @@ if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
         }
     };
 
-    recognition.onerror = (e) => {
-        console.error("Erreur micro :", e);
-        recognition.stop();
+    recognition.onerror = (event) => {
+        // 'aborted' = interruption normale, pas une vraie erreur
+        if (event.error === 'aborted') return;
+
+        // 'no-speech' = silence, on laisse onend relancer tout seul
+        if (event.error === 'no-speech') return;
+
+        // Erreurs bloquantes : on coupe tout
+        if (event.error === 'not-allowed' || event.error === 'audio-capture') {
+            console.error("Micro inaccessible :", event.error);
+            isListening = false; // ← empêche onend de relancer
+            const btn = document.getElementById("micBtn");
+            btn.classList.remove("listening");
+            btn.innerText = "🎤 Commencer";
+            return;
+        }
+
+        // Autres erreurs : log seulement, onend s'occupe du restart
+        console.warn("Erreur reconnaissance :", event.error);
     };
 }
 

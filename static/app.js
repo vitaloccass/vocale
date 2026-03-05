@@ -1365,7 +1365,10 @@ function recupererFournisseurs(){
     const options = Array.from(selectFournisseur.options);
     let url ="";
 
-    const BASE_URL = `${window.location.protocol}//${window.location.hostname}:5000`;
+    const BASE_URL = window.location.hostname === 'localhost' 
+    ? 'https://localhost:5000'
+    : `${window.location.protocol}//${window.location.hostname}`;
+
     url = `${BASE_URL}/get_fournisseur`;
 
     fetch(url)

@@ -344,34 +344,36 @@ def get_or_create_folder(service, folder_name, parent_id=None, drive_id=None):
     return folder.get('id')
 
 def upload_to_drive(file_content, filename, tsena, folder_id=None, mime_type='text/plain'):
-    # ✅ Fix 3 : tsena passé en paramètre, plus request.form ici
     try:
         service = get_drive_service()
 
-        SHARED_DRIVE_ID = os.environ.get("SHARED_DRIVE_ID")  # ID du Shared Drive Render
+        SHARED_DRIVE_ID = os.environ.get("SHARED_DRIVE_ID")
+        print(f"🔍 SHARED_DRIVE_ID = '{SHARED_DRIVE_ID}'")
 
         # 📁 Dossier principal = tsena, dans le Shared Drive
-        main_folder_id = get_or_create_folder(service, tsena, parent_id=SHARED_DRIVE_ID)
+        main_folder_id = get_or_create_folder(service, tsena, parent_id=SHARED_DRIVE_ID, drive_id=SHARED_DRIVE_ID)
 
         # 📅 Sous-dossier date du jour
         date_today = datetime.now().strftime("%Y-%m-%d")
-        date_folder_id = get_or_create_folder(service, date_today, parent_id=main_folder_id)
+        date_folder_id = get_or_create_folder(service, date_today, parent_id=main_folder_id, drive_id=SHARED_DRIVE_ID)
 
         # 📄 Upload
         file_metadata = {
             'name': filename,
-            'parents': [date_folder_id]
+            'parents': [date_folder_id],
+            'driveId': SHARED_DRIVE_ID
         }
 
         fh = io.BytesIO(file_content)
         fh.seek(0)
-        media = MediaIoBaseUpload(fh, mimetype=mime_type, resumable=False)  # ✅ resumable=False
+        media = MediaIoBaseUpload(fh, mimetype=mime_type, resumable=False)
 
         file = service.files().create(
             body=file_metadata,
             media_body=media,
             fields='id, name, webViewLink, createdTime',
-            supportsAllDrives=True
+            supportsAllDrives=True,
+            supportsTeamDrives=True
         ).execute()
 
         print(f"✅ Uploadé : {tsena}/{date_today}/{filename}")

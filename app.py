@@ -354,13 +354,15 @@ def upload_to_drive(file_content, filename, tsena, folder_id=None, mime_type='te
 
         print("fen's")
         print(f"📁 main_folder_id = {main_folder_id}")
-        print(f"📁 date_folder_id = {date_folder_id}")
-        print(f"📁 FOLDER_ID vocale_shared = 1UrQj3lLP5P3_VWALrd3-34jITSsyRN9M")
+        
 
         # 📅 Sous-dossier date du jour
         date_today = datetime.now().strftime("%Y-%m-%d")
         date_folder_id = get_or_create_folder(service, date_today, parent_id=main_folder_id)
 
+        print(f"📁 date_folder_id = {date_folder_id}")
+        print(f"📁 FOLDER_ID vocale_shared = 1UrQj3lLP5P3_VWALrd3-34jITSsyRN9M")
+        
         # 📄 Upload
         file_metadata = {
             'name': filename,

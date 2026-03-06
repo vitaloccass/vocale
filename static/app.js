@@ -2733,7 +2733,7 @@ function exporterTXT() {
     const BASE_URL = `${window.location.protocol}//${window.location.hostname}:5000`;
     const url = `${BASE_URL}/upload`;
 
-    fetch("/upload", {
+    fetch(url, {
         method: "POST",
         body: formData
     })

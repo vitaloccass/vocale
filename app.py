@@ -346,8 +346,6 @@ def get_or_create_folder(service, folder_name, parent_id=None, drive_id=None):
 
 def upload_to_supabase(file_content, filename, tsena):
     try:
-        from supabase import create_client
-        
         url = os.environ.get("SUPABASE_URL")
         key = os.environ.get("SUPABASE_KEY")
         supabase = create_client(url, key)
@@ -358,7 +356,7 @@ def upload_to_supabase(file_content, filename, tsena):
         supabase.storage.from_("vocale-files").upload(
             path=path,
             file=file_content,
-            file_options={"content-type": "text/plain"}
+            file_options={"content-type": "text/plain", "upsert": "true"}
         )
 
         link = supabase.storage.from_("vocale-files").create_signed_url(path, 86400)

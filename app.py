@@ -13,12 +13,14 @@ from googleapiclient.http import MediaIoBaseUpload
 from google.auth.transport.requests import Request
 import pickle
 import requests
+import json
+from google.oauth2 import service_account
 
 app = Flask(__name__)
 app.secret_key = "secret123"  # CHANGEZ CETTE CLÉ EN PRODUCTION
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "vocale.db")
-SCOPES = ['https://www.googleapis.com/auth/drive.file']
+SCOPES = ['https://www.googleapis.com/auth/drive']
 UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "uploads")
 
 # Créer le dossier uploads s'il n'existe pas
@@ -288,37 +290,19 @@ def get_tsena():
 
 # ============= GOOGLE DRIVE (SERVICE ACCOUNT - MOBILE COMPATIBLE) =============
 
-
 def get_drive_service():
-    """Authentification et retour du service Google Drive"""
-    creds = None
+    creds_json = os.environ.get("GOOGLE_CREDENTIALS")
     
-    if os.path.exists('token.pickle'):
-        with open('token.pickle', 'rb') as token:
-            creds = pickle.load(token)
+    if not creds_json:
+        raise ValueError("❌ Variable d'env GOOGLE_CREDENTIALS manquante !")
     
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            print("🔄 Rafraîchissement du token...")
-            creds.refresh(Request())
-        else:
-            print("🔐 Première connexion...")
-            if not os.path.exists('credentials.json'):
-                raise FileNotFoundError(
-                    "❌ Fichier 'credentials.json' non trouvé!"
-                )
-            
-            flow = InstalledAppFlow.from_client_secrets_file(
-                'credentials.json', SCOPES)
-            #creds = flow.run_local_server(port=0)
-            creds = flow.run_local_server(port=8093)
-            print("✅ Authentification réussie!")
-        
-        with open('token.pickle', 'wb') as token:
-            pickle.dump(creds, token)
-            print("💾 Token sauvegardé")
-    
-    return build('drive', 'v3', credentials=creds)
+    creds_dict = json.loads(creds_json)
+    credentials = service_account.Credentials.from_service_account_info(
+        creds_dict,
+        scopes=SCOPES
+    )
+    print("✅ Authentification Service Account réussie!")
+    return build('drive', 'v3', credentials=credentials)
 
 def get_or_create_folder(service, folder_name, parent_id=None):
     """Cherche un dossier par nom, le crée s'il n'existe pas"""
@@ -351,12 +335,11 @@ def upload_to_drive(file_content, filename, folder_id=None, mime_type='text/plai
         tsena = request.form.get('tsena', '0')
 
         # 📁 Dossier principal
-        DOSSIER_PRINCIPAL = tsena  # ← changez le nom si vous voulez
-        main_folder_id = get_or_create_folder(service, DOSSIER_PRINCIPAL)
+        DOSSIER_PRINCIPAL = tsena 
 
         # 📅 Sous-dossier date du jour (format : 2026-02-17)
         date_today = datetime.now().strftime("%Y-%m-%d")
-        date_folder_id = get_or_create_folder(service, date_today, parent_id=main_folder_id)
+        date_folder_id = get_or_create_folder(service, date_today, parent_id=DOSSIER_PRINCIPAL)
 
         # 📄 Upload du fichier dans le sous-dossier date
         file_metadata = {
@@ -368,7 +351,6 @@ def upload_to_drive(file_content, filename, folder_id=None, mime_type='text/plai
         fh.seek(0)
         media = MediaIoBaseUpload(fh, mimetype=mime_type, resumable=True)
         
-
         print(f"📤 Upload de '{filename}' sur Google Drive...")
 
         file = service.files().create(

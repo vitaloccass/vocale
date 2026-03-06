@@ -348,7 +348,7 @@ def upload_to_drive(file_content, filename, tsena, folder_id=None, mime_type='te
     try:
         service = get_drive_service()
 
-        SHARED_DRIVE_ID = os.environ.get("1w1OyE2h7Djcrfg7xNGHIHOyAg9mf8bki")  # ID du Shared Drive Render
+        SHARED_DRIVE_ID = os.environ.get("SHARED_DRIVE_ID")  # ID du Shared Drive Render
 
         # 📁 Dossier principal = tsena, dans le Shared Drive
         main_folder_id = get_or_create_folder(service, tsena, parent_id=SHARED_DRIVE_ID)

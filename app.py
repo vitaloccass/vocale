@@ -15,6 +15,7 @@ import pickle
 import requests
 import json
 from google.oauth2 import service_account
+from supabase import create_client
 
 app = Flask(__name__)
 app.secret_key = "secret123"  # CHANGEZ CETTE CLÉ EN PRODUCTION
@@ -345,49 +346,29 @@ def get_or_create_folder(service, folder_name, parent_id=None, drive_id=None):
 
 def upload_to_drive(file_content, filename, tsena, folder_id=None, mime_type='text/plain'):
     try:
-        service = get_drive_service()
+        supabase = create_client(
+            os.environ.get("SUPABASE_URL"),
+            os.environ.get("SUPABASE_KEY")
+        )
 
-        SHARED_DRIVE_ID = os.environ.get("SHARED_DRIVE_ID")
-
-        # 📁 Dossier principal = tsena, dans le Shared Drive
-        main_folder_id = get_or_create_folder(service, tsena, parent_id=SHARED_DRIVE_ID)
-
-        print("fen's")
-        print(f"📁 main_folder_id = {main_folder_id}")
-        
-
-        # 📅 Sous-dossier date du jour
         date_today = datetime.now().strftime("%Y-%m-%d")
-        date_folder_id = get_or_create_folder(service, date_today, parent_id=main_folder_id)
+        path = f"{tsena}/{date_today}/{filename}"
 
-        print(f"📁 date_folder_id = {date_folder_id}")
-        print(f"📁 FOLDER_ID vocale_shared = 1UrQj3lLP5P3_VWALrd3-34jITSsyRN9M")
-        
-        # 📄 Upload
-        file_metadata = {
-            'name': filename,
-            'parents': [date_folder_id],
-            'driveId': SHARED_DRIVE_ID
-        }
+        supabase.storage.from_("vocale-files").upload(
+            path=path,
+            file=file_content,
+            file_options={"content-type": "text/plain"}
+        )
 
-        fh = io.BytesIO(file_content)
-        fh.seek(0)
-        media = MediaIoBaseUpload(fh, mimetype=mime_type, resumable=False)
+        # Lien signé valable 1 heure
+        link = supabase.storage.from_("vocale-files").create_signed_url(path, 3600)
 
-        file = service.files().create(
-            body=file_metadata,
-            media_body=media,
-            fields='id, name, webViewLink, createdTime',
-            supportsAllDrives=True,
-            supportsTeamDrives=True
-        ).execute()
-
-        print(f"✅ Uploadé : {tsena}/{date_today}/{filename}")
-        print(f"🔗 Lien : {file.get('webViewLink')}")
-        return file.get('id'), file.get('webViewLink')
+        print(f"✅ Uploadé : {path}")
+        print(f"🔗 Lien : {link['signedURL']}")
+        return path, link['signedURL']
 
     except Exception as e:
-        print(f"❌ Erreur upload Drive: {str(e)}")
+        print(f"❌ Erreur upload Supabase: {str(e)}")
         raise
 
 @app.route('/upload', methods=['POST'])
@@ -430,12 +411,7 @@ def upload_file():
 
         folder_id = None
 
-        file_id, web_link = upload_to_drive(
-            file_content, 
-            filename,
-            nom_tsens,
-            folder_id=folder_id
-        )
+        file_id, web_link = upload_to_drive(file_content, filename, nom_tsens)
 
         return jsonify({
             "success": True,

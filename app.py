@@ -335,11 +335,12 @@ def upload_to_drive(file_content, filename, folder_id=None, mime_type='text/plai
         tsena = request.form.get('tsena', '0')
 
         # 📁 Dossier principal
-        DOSSIER_PRINCIPAL = tsena 
+        DOSSIER_PRINCIPAL = tsena  # ← changez le nom si vous voulez
+        main_folder_id = get_or_create_folder(service, DOSSIER_PRINCIPAL)
 
         # 📅 Sous-dossier date du jour (format : 2026-02-17)
         date_today = datetime.now().strftime("%Y-%m-%d")
-        date_folder_id = get_or_create_folder(service, date_today, parent_id=DOSSIER_PRINCIPAL)
+        date_folder_id = get_or_create_folder(service, date_today, parent_id=main_folder_id)
 
         # 📄 Upload du fichier dans le sous-dossier date
         file_metadata = {

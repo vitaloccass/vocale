@@ -291,18 +291,21 @@ def get_tsena():
 # ============= GOOGLE DRIVE (SERVICE ACCOUNT - MOBILE COMPATIBLE) =============
 
 def get_drive_service():
-    creds_json = os.environ.get("GOOGLE_CREDENTIALS")
+    creds_raw = os.environ.get("GOOGLE_CREDENTIALS", "")
     
-    if not creds_json:
-        raise ValueError("❌ Variable d'env GOOGLE_CREDENTIALS manquante !")
+    # ✅ Fix 1 : nettoie les guillemets parasites (cause du "Extra data" error)
+    creds_raw = creds_raw.strip().strip("'").strip('"')
     
-    creds_dict = json.loads(creds_json)
+    if not creds_raw:
+        raise ValueError("❌ Variable GOOGLE_CREDENTIALS manquante !")
+    
+    creds_dict = json.loads(creds_raw)
     credentials = service_account.Credentials.from_service_account_info(
-        creds_dict,
-        scopes=SCOPES
+        creds_dict, scopes=SCOPES
     )
     print("✅ Authentification Service Account réussie!")
     return build('drive', 'v3', credentials=credentials)
+
 
 def get_or_create_folder(service, folder_name, parent_id=None):
     """Cherche un dossier par nom, le crée s'il n'existe pas"""
@@ -310,39 +313,51 @@ def get_or_create_folder(service, folder_name, parent_id=None):
     if parent_id:
         query += f" and '{parent_id}' in parents"
     
-    results = service.files().list(q=query, fields="files(id, name)").execute()
-    files = results.get('files', [])
+    # ✅ Fix 2 : supportsAllDrives pour Shared Drive
+    results = service.files().list(
+        q=query,
+        fields="files(id, name)",
+        supportsAllDrives=True,
+        includeItemsFromAllDrives=True
+    ).execute()
     
+    files = results.get('files', [])
     if files:
         print(f"📁 Dossier existant trouvé : {folder_name}")
         return files[0]['id']
-    else:
-        print(f"📁 Création du dossier : {folder_name}")
-        metadata = {
-            'name': folder_name,
-            'mimeType': 'application/vnd.google-apps.folder'
-        }
-        if parent_id:
-            metadata['parents'] = [parent_id]
-        
-        folder = service.files().create(body=metadata, fields='id').execute()
-        return folder.get('id')
+    
+    print(f"📁 Création du dossier : {folder_name}")
+    metadata = {
+        'name': folder_name,
+        'mimeType': 'application/vnd.google-apps.folder'
+    }
+    if parent_id:
+        metadata['parents'] = [parent_id]
+    
+    # ✅ Fix 2 : supportsAllDrives ici aussi
+    folder = service.files().create(
+        body=metadata,
+        fields='id',
+        supportsAllDrives=True
+    ).execute()
+    return folder.get('id')
 
-def upload_to_drive(file_content, filename, folder_id=None, mime_type='text/plain'):
-    """Upload un fichier sur Google Drive"""
+
+def upload_to_drive(file_content, filename, tsena, folder_id=None, mime_type='text/plain'):
+    # ✅ Fix 3 : tsena passé en paramètre, plus request.form ici
     try:
         service = get_drive_service()
-        tsena = request.form.get('tsena', '0')
 
-        # 📁 Dossier principal
-        DOSSIER_PRINCIPAL = tsena  # ← changez le nom si vous voulez
-        main_folder_id = get_or_create_folder(service, DOSSIER_PRINCIPAL)
+        SHARED_DRIVE_ID = os.environ.get("1w1OyE2h7Djcrfg7xNGHIHOyAg9mf8bki")  # ID du Shared Drive Render
 
-        # 📅 Sous-dossier date du jour (format : 2026-02-17)
+        # 📁 Dossier principal = tsena, dans le Shared Drive
+        main_folder_id = get_or_create_folder(service, tsena, parent_id=SHARED_DRIVE_ID)
+
+        # 📅 Sous-dossier date du jour
         date_today = datetime.now().strftime("%Y-%m-%d")
         date_folder_id = get_or_create_folder(service, date_today, parent_id=main_folder_id)
 
-        # 📄 Upload du fichier dans le sous-dossier date
+        # 📄 Upload
         file_metadata = {
             'name': filename,
             'parents': [date_folder_id]
@@ -350,25 +365,21 @@ def upload_to_drive(file_content, filename, folder_id=None, mime_type='text/plai
 
         fh = io.BytesIO(file_content)
         fh.seek(0)
-        media = MediaIoBaseUpload(fh, mimetype=mime_type, resumable=True)
-        
-        print(f"📤 Upload de '{filename}' sur Google Drive...")
+        media = MediaIoBaseUpload(fh, mimetype=mime_type, resumable=False)  # ✅ resumable=False
 
         file = service.files().create(
             body=file_metadata,
             media_body=media,
-            fields='id, name, webViewLink, createdTime'
+            fields='id, name, webViewLink, createdTime',
+            supportsAllDrives=True
         ).execute()
 
-        print(f"✅ Fichier uploadé avec succès!")
-        print(f"   📁 Dossier : {DOSSIER_PRINCIPAL}/{date_today}/")
-        print(f"   📄 Fichier : {filename}")
-        print(f"   🔗 Lien : {file.get('webViewLink')}")
-
+        print(f"✅ Uploadé : {tsena}/{date_today}/{filename}")
+        print(f"🔗 Lien : {file.get('webViewLink')}")
         return file.get('id'), file.get('webViewLink')
 
     except Exception as e:
-        print(f"❌ Erreur lors de l'upload sur Drive: {str(e)}")
+        print(f"❌ Erreur upload Drive: {str(e)}")
         raise
 
 @app.route('/upload', methods=['POST'])

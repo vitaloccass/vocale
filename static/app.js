@@ -2730,7 +2730,7 @@ function exporterTXT() {
     formData.append("date_fact", dateFact);
     formData.append("tsena", tsenaFinal); // ✅ valeur correcte ici
 
-    const BASE_URL = `${window.location.protocol}//${window.location.hostname}:5000`;
+    const BASE_URL = window.location.origin;
     const url = `${BASE_URL}/upload`;
 
     fetch(url, {

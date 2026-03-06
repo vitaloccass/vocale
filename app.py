@@ -351,11 +351,11 @@ def upload_to_drive(file_content, filename, tsena, folder_id=None, mime_type='te
         print(f"🔍 SHARED_DRIVE_ID = '{SHARED_DRIVE_ID}'")
 
         # 📁 Dossier principal = tsena, dans le Shared Drive
-        main_folder_id = get_or_create_folder(service, tsena, parent_id=SHARED_DRIVE_ID, drive_id=SHARED_DRIVE_ID)
+        main_folder_id = get_or_create_folder(service, tsena, parent_id=SHARED_DRIVE_ID)
 
         # 📅 Sous-dossier date du jour
         date_today = datetime.now().strftime("%Y-%m-%d")
-        date_folder_id = get_or_create_folder(service, date_today, parent_id=main_folder_id, drive_id=SHARED_DRIVE_ID)
+        date_folder_id = get_or_create_folder(service, date_today, parent_id=main_folder_id)
 
         # 📄 Upload
         file_metadata = {

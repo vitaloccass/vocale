@@ -306,35 +306,36 @@ def get_drive_service():
     print("✅ Authentification Service Account réussie!")
     return build('drive', 'v3', credentials=credentials)
 
-
-def get_or_create_folder(service, folder_name, parent_id=None):
-    """Cherche un dossier par nom, le crée s'il n'existe pas"""
+def get_or_create_folder(service, folder_name, parent_id=None, drive_id=None):
     query = f"name='{folder_name}' and mimeType='application/vnd.google-apps.folder' and trashed=false"
     if parent_id:
         query += f" and '{parent_id}' in parents"
-    
-    # ✅ Fix 2 : supportsAllDrives pour Shared Drive
-    results = service.files().list(
-        q=query,
-        fields="files(id, name)",
-        supportsAllDrives=True,
-        includeItemsFromAllDrives=True
-    ).execute()
-    
+
+    list_params = {
+        "q": query,
+        "fields": "files(id, name)",
+        "supportsAllDrives": True,
+        "includeItemsFromAllDrives": True,
+    }
+    if drive_id:
+        list_params["corpora"] = "drive"
+        list_params["driveId"] = drive_id
+
+    results = service.files().list(**list_params).execute()
     files = results.get('files', [])
+
     if files:
-        print(f"📁 Dossier existant trouvé : {folder_name}")
+        print(f"📁 Dossier existant : {folder_name}")
         return files[0]['id']
-    
-    print(f"📁 Création du dossier : {folder_name}")
+
+    print(f"📁 Création dossier : {folder_name}")
     metadata = {
         'name': folder_name,
-        'mimeType': 'application/vnd.google-apps.folder'
+        'mimeType': 'application/vnd.google-apps.folder',
     }
     if parent_id:
         metadata['parents'] = [parent_id]
-    
-    # ✅ Fix 2 : supportsAllDrives ici aussi
+
     folder = service.files().create(
         body=metadata,
         fields='id',
@@ -342,14 +343,13 @@ def get_or_create_folder(service, folder_name, parent_id=None):
     ).execute()
     return folder.get('id')
 
-
 def upload_to_drive(file_content, filename, tsena, folder_id=None, mime_type='text/plain'):
     # ✅ Fix 3 : tsena passé en paramètre, plus request.form ici
     try:
         service = get_drive_service()
 
         SHARED_DRIVE_ID = os.environ.get("SHARED_DRIVE_ID")  # ID du Shared Drive Render
-        print(f"🔍 SHARED_DRIVE_ID = {SHARED_DRIVE_ID}")
+
         # 📁 Dossier principal = tsena, dans le Shared Drive
         main_folder_id = get_or_create_folder(service, tsena, parent_id=SHARED_DRIVE_ID)
 

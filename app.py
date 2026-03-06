@@ -394,6 +394,7 @@ def upload_file():
         recs = request.form.get('recs', 'unknown')
         nom_client = request.form.get('nom_client', 'unknown')
         date_fact = request.form.get('date_fact', 'unknown')
+        nom_tsens = request.form.get('tsena', 'unknown')
 
         def clean(s):
             return "".join(c if c.isalnum() or c in (' ', '-', '_') else "_" for c in s)
@@ -423,7 +424,8 @@ def upload_file():
 
         file_id, web_link = upload_to_drive(
             file_content, 
-            filename, 
+            filename,
+            nom_tsens,
             folder_id=folder_id
         )
 

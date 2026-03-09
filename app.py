@@ -18,6 +18,14 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
+import os
+import base64
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
+from email import encoders
+from google.oauth2.credentials import Credentials
+from google.auth.transport.requests import Request
 
 app = Flask(__name__)
 app.secret_key = "secret123"  # CHANGEZ CETTE CLÉ EN PRODUCTION
@@ -429,34 +437,46 @@ def upload_file():
         traceback.print_exc()
         return jsonify({"error": f"Erreur serveur: {str(e)}"}), 500
 
-def envoyer_avec_pj(destinataire, sujet, corps, fichier, nom_affiche=None):
-    try:
-        expediteur = "mahfiorenana@gmail.com"
-        mot_de_passe = "tstz orgs dkbs itio"
+def envoyer_avec_pj(destinataire, nom_tsens, sujet, fichier, nom_affiche=None):
+    EXPEDITEUR = "mahfiorenana@gmail.com"
 
-        msg = MIMEMultipart()
-        msg["From"] = expediteur
-        msg["To"] = destinataire
-        msg["Subject"] = sujet
-        msg.attach(MIMEText(corps, "plain"))
+    # ✅ Credentials depuis les variables d'environnement
+    creds = Credentials(
+        token=None,
+        refresh_token=os.environ.get("GMAIL_REFRESH_TOKEN"),
+        token_uri="https://oauth2.googleapis.com/token",
+        client_id=os.environ.get("GMAIL_CLIENT_ID"),
+        client_secret=os.environ.get("GMAIL_CLIENT_SECRET"),
+        scopes=["https://mail.google.com/"]
+    )
 
-        # ✅ Pièce jointe
+    # ✅ Rafraîchit automatiquement le token
+    creds.refresh(Request())
 
-        nom_final = nom_affiche if nom_affiche else os.path.basename(fichier)
-        with open(fichier, "rb") as f:
-            pj = MIMEBase("application", "octet-stream")
-            pj.set_payload(f.read())
-            encoders.encode_base64(pj)
-            pj.add_header("Content-Disposition", f"attachment; filename={nom_final}")
-            msg.attach(pj)
+    service = build("gmail", "v1", credentials=creds)
 
-        with smtplib.SMTP_SSL("smtp.gmail.com", 587) as server:
-            server.login(expediteur, mot_de_passe)
-            server.send_message(msg)
-            print("Email envoyé !")
-    except Exception as e:
-        print(f"Erreur: {e}")  # visible dans les logs
-        return jsonify({"success": False, "erreur": str(e)}), 500
+    # ✅ Construire l'email
+    msg = MIMEMultipart()
+    msg["From"] = EXPEDITEUR
+    msg["To"] = destinataire
+    msg["Subject"] = f"{sujet} - {nom_tsens}"
+    msg.attach(MIMEText("Bonjour, veuillez trouver le fichier en pièce jointe.", "plain"))
+
+    nom_final = nom_affiche if nom_affiche else os.path.basename(fichier)
+    with open(fichier, "rb") as f:
+        pj = MIMEBase("application", "octet-stream")
+        pj.set_payload(f.read())
+        encoders.encode_base64(pj)
+        pj.add_header("Content-Disposition", f"attachment; filename={nom_final}")
+        msg.attach(pj)
+
+    # ✅ Encoder et envoyer
+    raw = base64.urlsafe_b64encode(msg.as_bytes()).decode()
+    service.users().messages().send(
+        userId="me", body={"raw": raw}
+    ).execute()
+
+    print("✅ Email envoyé via API Gmail OAuth2 !")
     
 @app.route('/download/<filename>')
 def download_file(filename):

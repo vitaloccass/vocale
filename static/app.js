@@ -1363,13 +1363,8 @@ function recupererFournisseurs(){
     
     // Récupérer toutes les options
     const options = Array.from(selectFournisseur.options);
-    let url ="";
-
-    const BASE_URL = window.location.hostname === 'localhost' 
-    ? 'https://localhost:5000'
-    : `${window.location.protocol}//${window.location.hostname}`;
-
-    url = `${BASE_URL}/get_fournisseur`;
+    const BASE_URL = window.location.origin;
+    const url = `${BASE_URL}/get_fournisseur`;
 
     fetch(url)
         .then(response => response.json())

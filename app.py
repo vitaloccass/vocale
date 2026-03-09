@@ -8,14 +8,16 @@ import os
 import io
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
-from google_auth_oauthlib.flow import InstalledAppFlow
-from googleapiclient.http import MediaIoBaseUpload
 from google.auth.transport.requests import Request
 import pickle
 import requests
 import json
 from google.oauth2 import service_account
-from supabase import create_client
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
+from email import encoders
 
 app = Flask(__name__)
 app.secret_key = "secret123"  # CHANGEZ CETTE CLÉ EN PRODUCTION
@@ -400,22 +402,37 @@ def upload_file():
         print(f"   Date: {date_fact}")
         print(f"{'='*60}")
 
-        if not uploaded_file:
-            return jsonify({"error": "Aucun fichier reçu"}), 400
+        # ✅ 1. Créer le dossier temporaire si besoin
+        temp_dir = os.path.join(os.path.dirname(__file__), "temp_uploads")
+        os.makedirs(temp_dir, exist_ok=True)
 
-        file_content = uploaded_file.read()
+        # ✅ 2. Sauvegarder le fichier uploadé sur le disque
+        chemin_fichier = os.path.join(temp_dir, filename)
+        uploaded_file.save(chemin_fichier)
+        print(f"✅ Fichier sauvegardé : {chemin_fichier}")
 
-        folder_id = None
+        # ✅ 3. Envoyer avec le chemin complet
+        envoyer_avec_pj("andrivolavita@gmail.com", nom_tsens, "Bonjour", chemin_fichier, filename)
+        print("✅ Email envoyé avec succès")
 
-        file_id, web_link = upload_to_supabase(file_content, filename, nom_tsens)
+        # ✅ 4. Supprimer le fichier temporaire après envoi
+        os.remove(chemin_fichier)
 
-        return jsonify({
-            "success": True,
-            "message": "Fichier enregistré sur Google Drive",
-            "filename": filename,
-            "file_id": file_id,
-            "link": web_link
-        }), 200
+        return jsonify({"success": True, "message": "Email envoyé !"}), 200
+
+        #file_content = uploaded_file.read()
+
+        #folder_id = None
+
+        #file_id, web_link = upload_to_supabase(file_content, filename, nom_tsens)
+
+        #return jsonify({
+        #    "success": True,
+        #    "message": "Fichier enregistré sur Google Drive",
+        #    "filename": filename,
+        #    "file_id": file_id,
+        #    "link": web_link
+        #}), 200
 
     except FileNotFoundError as e:
         print(f"❌ {str(e)}")
@@ -425,6 +442,31 @@ def upload_file():
         import traceback
         traceback.print_exc()
         return jsonify({"error": f"Erreur serveur: {str(e)}"}), 500
+
+def envoyer_avec_pj(destinataire, sujet, corps, fichier, nom_affiche=None):
+    expediteur = "mahfiorenana@gmail.com"
+    mot_de_passe = "tstz orgs dkbs itio"
+
+    msg = MIMEMultipart()
+    msg["From"] = expediteur
+    msg["To"] = destinataire
+    msg["Subject"] = sujet
+    msg.attach(MIMEText(corps, "plain"))
+
+    # ✅ Pièce jointe
+
+    nom_final = nom_affiche if nom_affiche else os.path.basename(fichier)
+    with open(fichier, "rb") as f:
+        pj = MIMEBase("application", "octet-stream")
+        pj.set_payload(f.read())
+        encoders.encode_base64(pj)
+        pj.add_header("Content-Disposition", f"attachment; filename={nom_final}")
+        msg.attach(pj)
+
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+        server.login(expediteur, mot_de_passe)
+        server.send_message(msg)
+        print("Email envoyé !")
 
 @app.route('/download/<filename>')
 def download_file(filename):

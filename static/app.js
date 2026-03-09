@@ -1926,8 +1926,6 @@ function traiterChoixdebut(choix) {
             tdAffaire.innerText = rec2;
             tdNumFact.innerText = rec3;
 
-            nom_tsena=data.nom_tsena;
-
             afficher_magasins(magasinsFiltre);
         }
     }

@@ -420,20 +420,6 @@ def upload_file():
 
         return jsonify({"success": True, "message": "Email envoyé !"}), 200
 
-        #file_content = uploaded_file.read()
-
-        #folder_id = None
-
-        #file_id, web_link = upload_to_supabase(file_content, filename, nom_tsens)
-
-        #return jsonify({
-        #    "success": True,
-        #    "message": "Fichier enregistré sur Google Drive",
-        #    "filename": filename,
-        #    "file_id": file_id,
-        #    "link": web_link
-        #}), 200
-
     except FileNotFoundError as e:
         print(f"❌ {str(e)}")
         return jsonify({"error": str(e)}), 500
@@ -464,7 +450,7 @@ def envoyer_avec_pj(destinataire, sujet, corps, fichier, nom_affiche=None):
             pj.add_header("Content-Disposition", f"attachment; filename={nom_final}")
             msg.attach(pj)
 
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+        with smtplib.SMTP_SSL("smtp.gmail.com", 587) as server:
             server.login(expediteur, mot_de_passe)
             server.send_message(msg)
             print("Email envoyé !")

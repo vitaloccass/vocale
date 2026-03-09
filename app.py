@@ -444,30 +444,34 @@ def upload_file():
         return jsonify({"error": f"Erreur serveur: {str(e)}"}), 500
 
 def envoyer_avec_pj(destinataire, sujet, corps, fichier, nom_affiche=None):
-    expediteur = "mahfiorenana@gmail.com"
-    mot_de_passe = "tstz orgs dkbs itio"
+    try:
+        expediteur = "mahfiorenana@gmail.com"
+        mot_de_passe = "tstz orgs dkbs itio"
 
-    msg = MIMEMultipart()
-    msg["From"] = expediteur
-    msg["To"] = destinataire
-    msg["Subject"] = sujet
-    msg.attach(MIMEText(corps, "plain"))
+        msg = MIMEMultipart()
+        msg["From"] = expediteur
+        msg["To"] = destinataire
+        msg["Subject"] = sujet
+        msg.attach(MIMEText(corps, "plain"))
 
-    # ✅ Pièce jointe
+        # ✅ Pièce jointe
 
-    nom_final = nom_affiche if nom_affiche else os.path.basename(fichier)
-    with open(fichier, "rb") as f:
-        pj = MIMEBase("application", "octet-stream")
-        pj.set_payload(f.read())
-        encoders.encode_base64(pj)
-        pj.add_header("Content-Disposition", f"attachment; filename={nom_final}")
-        msg.attach(pj)
+        nom_final = nom_affiche if nom_affiche else os.path.basename(fichier)
+        with open(fichier, "rb") as f:
+            pj = MIMEBase("application", "octet-stream")
+            pj.set_payload(f.read())
+            encoders.encode_base64(pj)
+            pj.add_header("Content-Disposition", f"attachment; filename={nom_final}")
+            msg.attach(pj)
 
-    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-        server.login(expediteur, mot_de_passe)
-        server.send_message(msg)
-        print("Email envoyé !")
-
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
+            server.login(expediteur, mot_de_passe)
+            server.send_message(msg)
+            print("Email envoyé !")
+    except Exception as e:
+        print(f"Erreur: {e}")  # visible dans les logs
+        return jsonify({"success": False, "erreur": str(e)}), 500
+    
 @app.route('/download/<filename>')
 def download_file(filename):
     """Télécharger un fichier"""

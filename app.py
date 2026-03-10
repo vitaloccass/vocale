@@ -436,7 +436,21 @@ def upload_file():
         return jsonify({"error": f"Erreur serveur: {str(e)}"}), 500
 
 def envoyer_avec_pj(destinataire, nom_tsens, sujet, fichier, nom_affiche=None):
-    creds_data = json.loads(os.environ.get("GOOGLE_CREDENTIALS"))
+    creds_raw = os.environ.get("GOOGLE_CREDENTIALS")
+    
+    if not creds_raw:
+        raise Exception("❌ Variable GOOGLE_CREDENTIALS manquante sur Render")
+    
+    try:
+        creds_data = json.loads(creds_raw)
+    except json.JSONDecodeError:
+        raise Exception("❌ GOOGLE_CREDENTIALS n'est pas un JSON valide")
+    
+    # Vérifier les champs requis
+    required = ["refresh_token", "client_id", "client_secret"]
+    for field in required:
+        if field not in creds_data:
+            raise Exception(f"❌ Champ manquant dans GOOGLE_CREDENTIALS: {field}")
     
     creds = Credentials(
         token=None,

@@ -349,8 +349,8 @@ function afficherListeFiltre(articles) {
             if (!targetRow) {
                 targetRow = rows[rows.length - 1];
             }
-            const code_article = targetRow.children[4];
-            const nom_article = targetRow.children[5];
+            const code_article = targetRow.children[6];
+            const nom_article = targetRow.children[7];
 
             if(opt.textContent.includes('/')){
                 const elements = opt.textContent.split('/');
@@ -501,15 +501,15 @@ function afficherListeFiltre(articles) {
                 if (!targetRow) {
                     targetRow = rows[rows.length - 1];
                 }
-                const tdqte = targetRow.children[6]; // colonne qte article
+                const tdqte = targetRow.children[8]; // colonne qte article
                 console.log("Qte reçu :", quantite);
                 tdqte.innerText = quantite;
 
-                const tdpu = targetRow.children[7]; // colonne pu article
+                const tdpu = targetRow.children[9]; // colonne pu article
                 console.log("PU reçu :", pu);
                 tdpu.innerText = pu;
 
-                const tdremise = targetRow.children[8]; // colonne remise article
+                const tdremise = targetRow.children[10]; // colonne remise article
                 console.log("Remise reçu :", remise);
                 tdremise.innerText = remise;
 
@@ -587,8 +587,8 @@ function selectionnerArticleParNumero(numero) {
     if (!targetRow) {
         targetRow = rows[rows.length - 1];
     }
-    const code_article = targetRow.children[4];
-    const nom_article = targetRow.children[5];
+    const code_article = targetRow.children[6];
+    const nom_article = targetRow.children[7];
 
     if(optionChoisie.textContent.includes('/')){
         const elements = optionChoisie.textContent.split('/');
@@ -726,15 +726,15 @@ function selectionnerArticleParNumero(numero) {
             if (!targetRow) {
                 targetRow = rows[rows.length - 1];
             }
-            const tdqte = targetRow.children[6]; // colonne qte article
+            const tdqte = targetRow.children[8]; // colonne qte article
             console.log("Qte reçu :", quantite);
             tdqte.innerText = quantite;
 
-            const tdpu = targetRow.children[7]; // colonne pu article
+            const tdpu = targetRow.children[9]; // colonne pu article
             console.log("PU reçu :", pu);
             tdpu.innerText = pu;
 
-            const tdremise = targetRow.children[8]; // colonne remise article
+            const tdremise = targetRow.children[10]; // colonne remise article
             console.log("Remise reçu :", remise);
             tdremise.innerText = remise;
 
@@ -797,9 +797,14 @@ function selectionnerFournisseurParNumero(numero) {
     if (!targetRow) {
         targetRow = rows[rows.length - 1];
     }
+    
+    const fournisseur = targetRow.children[5];
+    const codefournisseur = targetRow.children[4];
+    
+    const recup=optionChoisie.textContent.split('/');
+    codefournisseur.innerText   = recup[0];
+    fournisseur.innerText   = recup[1];
 
-    const fournisseur = targetRow.children[3];
-    fournisseur.innerText   = optionChoisie.textContent;
     const lblfournisseur = document.querySelector(".lblfournisseur");
     lblfournisseur.innerText= optionChoisie.textContent;
 
@@ -901,15 +906,15 @@ function selectionnerFournisseurParNumero(numero) {
         if (!targetRow) {
             targetRow = rows[rows.length - 1];
         }
-        const tdqte = targetRow.children[6]; // colonne qte article
+        const tdqte = targetRow.children[8]; // colonne qte article
         console.log("Qte reçu :", quantite);
         tdqte.innerText = quantite;
 
-        const tdpu = targetRow.children[7]; // colonne pu article
+        const tdpu = targetRow.children[9]; // colonne pu article
         console.log("PU reçu :", pu);
         tdpu.innerText = pu;
 
-        const tdremise = targetRow.children[8]; // colonne remise article
+        const tdremise = targetRow.children[10]; // colonne remise article
         console.log("Remise reçu :", remise);
         tdremise.innerText = remise;
 
@@ -1025,8 +1030,8 @@ function afficherFournisseurFiltre(fournisseur) {
                 targetRow = rows[rows.length - 1];
             }
 
-            const fournisseur = targetRow.children[3];
-            const codefournisseur = targetRow.children[13];
+            const fournisseur = targetRow.children[5];
+            const codefournisseur = targetRow.children[4];
             
             const recup=opt.textContent.split('/');
             codefournisseur.innerText   = recup[0];
@@ -1136,15 +1141,15 @@ function afficherFournisseurFiltre(fournisseur) {
                 if (!targetRow) {
                     targetRow = rows[rows.length - 1];
                 }
-                const tdqte = targetRow.children[6]; // colonne qte article
+                const tdqte = targetRow.children[8]; // colonne qte article
                 console.log("Qte reçu :", quantite);
                 tdqte.innerText = quantite;
 
-                const tdpu = targetRow.children[7]; // colonne pu article
+                const tdpu = targetRow.children[9]; // colonne pu article
                 console.log("PU reçu :", pu);
                 tdpu.innerText = pu;
 
-                const tdremise = targetRow.children[8]; // colonne remise article
+                const tdremise = targetRow.children[10]; // colonne remise article
                 console.log("Remise reçu :", remise);
                 tdremise.innerText = remise;
 
@@ -1281,8 +1286,8 @@ function afficherArticles(articles) {
                 targetRow = rows[rows.length - 1];
             }
 
-            const code_article = targetRow.children[4];
-            const nom_article = targetRow.children[5];
+            const code_article = targetRow.children[6];
+            const nom_article = targetRow.children[7];
 
             if (opt.textContent.includes('/')) {
                 const elements = opt.textContent.split('/');
@@ -1335,9 +1340,9 @@ function afficherArticles(articles) {
                 const pu = document.getElementById('pu-input').value || 0;
                 const remise = document.getElementById('remise-input').value || 0;
 
-                const tdqte = targetRow.children[6];
-                const tdpu = targetRow.children[7];
-                const tdremise = targetRow.children[8];
+                const tdqte = targetRow.children[8];
+                const tdpu = targetRow.children[9];
+                const tdremise = targetRow.children[10];
 
                 tdqte.innerText = quantite;
                 tdpu.innerText = pu;
@@ -1546,36 +1551,6 @@ function afficher_magasins(magasins) {
                     case 11 :code=183405;break;
                 }
 
-                recup_code_tsena(code, data => {
-                    const lblMagasin = document.querySelector(".lblmagasin");
-                    const lbldepot = document.querySelector(".lbldepot");
-                    const lblaffaire = document.querySelector(".lblaffaire");
-                    const lblnumfact = document.querySelector(".lblnum_fact");
-                    const lblfournisseur = document.querySelector(".lblfournisseur");
-
-                    if(ctype.textContent.trim() !== "user"){
-                        lblMagasin.innerText = data.code_tsena;
-                    }else{
-                        lblMagasin.innerText = data.nom_tsena;
-                        lblfournisseur.innerHTML=data.nom_tsena;
-                    }
-                    lbldepot.innerText = data.depot;
-                    lblaffaire.innerText = data.affaire;
-                    lblnumfact.innerText = data.num_fact;
-
-                    const rec = lblMagasin.innerText;
-                    const rec1 = lbldepot.innerText;
-                    const rec2 = lblaffaire.innerText;
-                    const rec3 = lblnumfact.innerText;
-
-                    tdtsena.innerText   = rec;
-                    tdDepot.innerText   = rec1;
-                    tdAffaire.innerText = rec2;
-                    tdNumFact.innerText = rec3;
-
-                    nom_tsena=data.nom_tsena;
-                });
-                    
                 let rows = document.querySelectorAll("#table-body tr");
                 if (!rows.length) return;
 
@@ -1592,57 +1567,44 @@ function afficher_magasins(magasins) {
                 if (!targetRow) {
                     targetRow = rows[rows.length - 1];
                 }
+                recup_code_tsena(code, data => {
+                    const num_fact = targetRow.children[0];
+                    const tdDate = targetRow.children[1];
+                    const code_tsena = targetRow.children[2];
+                    const tsena = targetRow.children[3];
+                    const depot = targetRow.children[12];
+                    const affaire = targetRow.children[13];
+                    const code_fournisseur = targetRow.children[4];
+                    const fournisseur = targetRow.children[5];
 
-                const tdDate = targetRow.children[1];   // colonne Date
+                    num_fact.innerText=data.num_fact;
 
-                // Date du jour (YYYY-MM-DD)
-                let d = new Date();
-                let date =
-                    d.getFullYear() + "-" +
-                    String(d.getMonth() + 1).padStart(2, "0") + "-" +
-                    String(d.getDate()).padStart(2, "0");
+                    let d = new Date();
+                    let date =
+                        d.getFullYear() + "-" +
+                        String(d.getMonth() + 1).padStart(2, "0") + "-" +
+                        String(d.getDate()).padStart(2, "0");
 
-                // ✅ écrire la date
-                tdDate.innerText = date;
+                    // ✅ écrire la date
+                    tdDate.innerText = date;
 
-                const ctype = document.getElementById('type');
-                let tdtsena=null;
-                if(ctype.textContent.trim() !== "user"){
-                    tdtsena = targetRow.children[2];
-                }else{
-                    tdtsena = targetRow.children[3];
-                }
+                    const ctype = document.getElementById('type');
+                    if(ctype.textContent.trim() !== "user")
+                    {
+                        code_tsena.innerText=data.code_tsena;
+                        tsena.innerText=data.nom_tsena.replace('LOCCA','').trim();
+                    }
 
-                const tdNumFact = targetRow.children[0]; // colonne numero facture
-                const tdDepot = targetRow.children[11]; // colonne depot
-                const tdAffaire = targetRow.children[12]; // colonne affaire
+                    
+                    if(ctype.textContent.trim() == "user"){
+                        code_fournisseur.innerText = data.code_tsena;
+                        fournisseur.innerText = data.nom_tsena.replace('LOCCA','').trim();
+                    }
 
-                const lblMagasin = document.querySelector(".lblmagasin");
-                const lbldepot = document.querySelector(".lbldepot");
-                const lblaffaire = document.querySelector(".lblaffaire");
-                const lblnumfact = document.querySelector(".lblnum_fact");
-                const lblfournisseur = document.querySelector(".lblfournisseur");
-
-                if(ctype.textContent.trim() !== "user"){
-                    lblMagasin.innerText = rec_code_tsena;
-                }else{
-                    lblMagasin.innerText = recup_tsena;
-                    lblfournisseur.innerHTML=recup_tsena;
-                }
-                lbldepot.innerText = rec_depot;
-                lblaffaire.innerText = rec_affaire;
-                lblnumfact.innerText = rec_num_fact;
-
-                const rec = lblMagasin.innerText;
-                const rec1 = lbldepot.innerText;
-                const rec2 = lblaffaire.innerText;
-                const rec3 = lblnumfact.innerText;
-
-                tdtsena.innerText   = rec;
-                tdDepot.innerText   = rec1;
-                tdAffaire.innerText = rec2;
-                tdNumFact.innerText = rec3;
-                
+                    depot.innerText=data.depot;
+                    affaire.innerText=data.affaire;
+                });
+                    
                 // Fermer la liste
                 const listeDiv = document.getElementById('liste-magasins-filtre');
                 if (listeDiv) {
@@ -1718,16 +1680,12 @@ function selectionnermagasin(numero){
     tdDate.innerText = date;
 
     const ctype = document.getElementById('type');
-    let tdtsena=null;
-    if(ctype.textContent.trim() !== "user"){
-        tdtsena = targetRow.children[2];
-    }else{
-        tdtsena = targetRow.children[3];
-    }
+    const cdtsena = targetRow.children[2];
+    const tdtsena = targetRow.children[3];
 
     const tdNumFact = targetRow.children[0]; // colonne numero facture
-    const tdDepot = targetRow.children[11]; // colonne depot
-    const tdAffaire = targetRow.children[12]; // colonne affaire
+    const tdDepot = targetRow.children[13]; // colonne depot
+    const tdAffaire = targetRow.children[14]; // colonne affaire
 
     recup_code_tsena(code, data => {
         const lblMagasin = document.querySelector(".lblmagasin");
@@ -1752,12 +1710,13 @@ function selectionnermagasin(numero){
         const rec2 = lblaffaire.innerText;
         const rec3 = lblnumfact.innerText;
 
-        tdtsena.innerText   = rec;
+        cdtsena.innerText   = rec;
         tdDepot.innerText   = rec1;
         tdAffaire.innerText = rec2;
         tdNumFact.innerText = rec3;
 
         nom_tsena=data.nom_tsena;
+        tdtsena.innerText=data.nom_tsena.replace('LOCCA','').trim();
     });
 
     // Fermer la liste
@@ -1901,30 +1860,45 @@ function traiterChoixdebut(choix) {
 
             const tdtsena = targetRow.children[2]; // colonne code tsena
             const tdNumFact = targetRow.children[0]; // colonne numero facture
-            const tdDepot = targetRow.children[11]; // colonne depot
-            const tdAffaire = targetRow.children[12]; // colonne affaire
+            const tdDepot = targetRow.children[13]; // colonne depot
+            const tdAffaire = targetRow.children[14]; // colonne affaire
             const valeur = document.getElementById('tsena');
             const code = valeur.textContent.trim();
 
-            const lblMagasin = document.querySelector(".lblmagasin");
-            const lbldepot = document.querySelector(".lbldepot");
-            const lblaffaire = document.querySelector(".lblaffaire");
-            const lblnumfact = document.querySelector(".lblnum_fact");
+            const code_fournisseur = targetRow.children[2];
+            const fournisseur = targetRow.children[3];
 
-            lblMagasin.innerText = rec_code_tsena;
-            lbldepot.innerText = rec_depot;
-            lblaffaire.innerText = rec_affaire;
-            lblnumfact.innerText = rec_num_fact;
+            recup_code_tsena(code, data => {
+                const lblMagasin = document.querySelector(".lblmagasin");
+                const lbldepot = document.querySelector(".lbldepot");
+                const lblaffaire = document.querySelector(".lblaffaire");
+                const lblnumfact = document.querySelector(".lblnum_fact");
+                const lblfournisseur = document.querySelector(".lblfournisseur");
 
-            const rec = lblMagasin.innerText;
-            const rec1 = lbldepot.innerText;
-            const rec2 = lblaffaire.innerText;
-            const rec3 = lblnumfact.innerText;
+                if(ctype.textContent.trim() !== "user"){
+                    lblMagasin.innerText = data.code_tsena;
+                }else{
+                    lblMagasin.innerText = data.nom_tsena;
+                    lblfournisseur.innerHTML=data.nom_tsena;
+                }
 
-            tdtsena.innerText   = rec;
-            tdDepot.innerText   = rec1;
-            tdAffaire.innerText = rec2;
-            tdNumFact.innerText = rec3;
+                lbldepot.innerText = data.depot;
+                lblaffaire.innerText = data.affaire;
+                lblnumfact.innerText = data.num_fact;
+
+                const rec = lblMagasin.innerText;
+                const rec1 = lbldepot.innerText;
+                const rec2 = lblaffaire.innerText;
+                const rec3 = lblnumfact.innerText;
+
+                tdtsena.innerText   = rec;
+                tdDepot.innerText   = rec1;
+                tdAffaire.innerText = rec2;
+                tdNumFact.innerText = rec3;
+
+                code_fournisseur.innerText=data.code_tsena;
+                fournisseur.innerText=data.nom_tsena.replace('LOCCA','').trim();
+            });
 
             afficher_magasins(magasinsFiltre);
         }
@@ -2401,9 +2375,9 @@ function reinitialiser(){
         // rendre certaines cellules éditables
         if ([0,1,3,4,5,6,7,8].includes(i)) td.contentEditable = "true";
         if (i === 1) td.setAttribute("onfocus", "init()");
-        if ([6,7,8].includes(i)) td.setAttribute("oninput", "calculerTTC()");
-        if (i === 9) td.classList.add("tot_ttc");
-        if ([10,11,12].includes(i)) td.style.visibility = "hidden";
+        if ([8,9,10].includes(i)) td.setAttribute("oninput", "calculerTTC()");
+        if (i === 11) td.classList.add("tot_ttc");
+        if ([12,13,14].includes(i)) td.style.visibility = "hidden";
 
         nouvelleLigne.appendChild(td);
     }
@@ -2444,29 +2418,33 @@ function ajouterLigne() {
     newRow.classList.add("ligne");
     newRow.style.fontSize = "10px"; 
 
-    for (let i = 0; i < 13; i++) {
+    for (let i = 0; i < 14; i++) {
         let td = document.createElement("td");
 
-        if (i == 9) {
+        if (i == 11) {
             td.classList.add("tot_ttc");
             td.contentEditable = "false";
         }
 
         if (i == 0) {
-            const lblnumfact = document.querySelector(".lblnum_fact");
-
-            if (!lblnumfact) {
-                console.warn("⚠ lblnumfact introuvable !");
+            const firstRow = tbody.querySelector("tr.ligne");
+            
+            if (firstRow && firstRow.cells[0]) {
+                // Copier la valeur de la colonne 2 de la première ligne
+                const premiereValeur = firstRow.cells[0].textContent.trim();
+                td.textContent = premiereValeur;
+                console.log("✓ Colonne 2 : copié depuis première ligne =", premiereValeur);
             } else {
-                const rec = lblnumfact.textContent.trim();
-                console.log("Valeur récupérée :", rec);
-
-                if (td) {
-                    td.textContent = rec;
+                // Fallback : utiliser lblmagasin si aucune ligne n'existe encore
+                const lblmagasin = document.querySelector(".lblmagasin");
+                if (lblmagasin) {
+                    td.textContent = lblmagasin.textContent.trim();
+                    console.log("✓ Colonne 2 : depuis lblmagasin =", td.textContent);
                 } else {
-                    console.warn("⚠ td introuvable !");
+                    console.warn("⚠ Première ligne et lblmagasin introuvables !");
                 }
             }
+            td.contentEditable = "true";
         }
 
         // Colonne 1 : Date
@@ -2504,29 +2482,66 @@ function ajouterLigne() {
             td.contentEditable = "true";
         }
 
-        if (i == 3) {
-            const lblfournisseur = document.querySelector(".lblfournisseur");
-
-            if (!lblfournisseur) {
-                console.warn("⚠ lblfournisseur introuvable !");
+        if (i == 4) {
+            // Vérifier s'il existe déjà une ligne dans le tableau
+            const firstRow = tbody.querySelector("tr.ligne");
+            
+            if (firstRow && firstRow.cells[4]) {
+                // Copier la valeur de la colonne 2 de la première ligne
+                const premiereValeur = firstRow.cells[4].textContent.trim();
+                td.textContent = premiereValeur;
+                console.log("✓ Colonne 2 : copié depuis première ligne =", premiereValeur);
             } else {
-                const rec = lblfournisseur.textContent.trim();
-                const recup=rec.split('/');
-
-                if (td) {
-                    td.textContent = recup[1];
+                // Fallback : utiliser lblmagasin si aucune ligne n'existe encore
+                const lblmagasin = document.querySelector(".lblmagasin");
+                if (lblmagasin) {
+                    td.textContent = lblmagasin.textContent.trim();
+                    console.log("✓ Colonne 2 : depuis lblmagasin =", td.textContent);
                 } else {
-                    console.warn("⚠ td introuvable !");
+                    console.warn("⚠ Première ligne et lblmagasin introuvables !");
                 }
             }
+            td.contentEditable = "true";
+        }
+
+        if (i == 3) {
+           const firstRow = tbody.querySelector("tr.ligne");
+            
+            if (firstRow && firstRow.cells[3]) {
+                const premiereValeur = firstRow.cells[3].textContent.trim();
+                td.textContent = premiereValeur;
+            } else {
+                if (lblmagasin) {
+                    td.textContent = recs_tsena;
+                } else {
+                    console.warn("⚠ Première ligne et lblmagasin introuvables !");
+                }
+            }
+            td.contentEditable = "true";
+        }
+
+        if (i == 5) {
+           const firstRow = tbody.querySelector("tr.ligne");
+            
+            if (firstRow && firstRow.cells[5]) {
+                const premiereValeur = firstRow.cells[5].textContent.trim();
+                td.textContent = premiereValeur;
+            } else {
+                if (lblmagasin) {
+                    td.textContent = recs_tsena;
+                } else {
+                    console.warn("⚠ Première ligne et lblmagasin introuvables !");
+                }
+            }
+            td.contentEditable = "true";
         }
 
         // ------------------------
-        if (i == 10 || i == 11 || i == 12) {
+        if (i == 12 || i == 13 || i == 14) {
             td.style.visibility = "hidden";
             td.contentEditable = "false";
 
-            if (i == 11) {
+            if (i == 13) {
                 const lbldepot = document.querySelector(".lbldepot");
 
                 if (!lbldepot) {
@@ -2543,7 +2558,7 @@ function ajouterLigne() {
                 }
             }
 
-            if (i == 12) {
+            if (i == 14) {
                 const lblaffaire = document.querySelector(".lblaffaire");
 
                 if (!lblaffaire) {
@@ -2565,7 +2580,7 @@ function ajouterLigne() {
         // Colonnes 7, 8, 9 : recalcul automatique du TTC
         // (Qté, PU, Remise)
         // ------------------------
-        if (i == 6 || i == 7 || i == 8) {
+        if (i == 8 || i == 9 || i == 10) {
             td.addEventListener("input", calculerTTC);
             td.contentEditable = "true";
         }
@@ -2607,13 +2622,13 @@ function calculerTTC(){
         let tds = tr.querySelectorAll("td");
 
         //if (tds[4].innerText.trim() !== "") { // Si Réf article non vide
-            let qte = tds[6].innerText.trim();
-            let pu = tds[7].innerText.trim();
-            let remise = tds[8].innerText.trim();
+            let qte = tds[8].innerText.trim();
+            let pu = tds[9].innerText.trim();
+            let remise = tds[10].innerText.trim();
 
             let mtt = Number(qte) * Number(pu) * (1 - Number(remise)/100);
 
-            tds[9].innerText = mtt.toFixed(2);
+            tds[11].innerText = mtt.toFixed(2);
         //}
     });
 }

@@ -9,7 +9,6 @@ import io
 from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from google.auth.transport.requests import Request
-import pickle
 import requests
 import json
 from google.oauth2 import service_account
@@ -26,12 +25,15 @@ from email.mime.base import MIMEBase
 from email import encoders
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
+from dotenv import load_dotenv
+
+load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = "secret123"  # CHANGEZ CETTE CLÉ EN PRODUCTION
 
 DB_PATH = os.path.join(os.path.dirname(__file__), "vocale.db")
-SCOPES = ['https://www.googleapis.com/auth/drive']
+SCOPES = ['https://www.googleapis.com/auth/gmail.send']
 UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "uploads")
 
 # Créer le dossier uploads s'il n'existe pas
@@ -380,7 +382,6 @@ def upload_to_supabase(file_content, filename, tsena):
 @app.route('/upload', methods=['POST'])
 def upload_file():
     try:
-        
         uploaded_file = request.files.get('file')
         if not uploaded_file:
             return jsonify({"error": "Aucun fichier reçu"}), 400
@@ -438,45 +439,44 @@ def upload_file():
         return jsonify({"error": f"Erreur serveur: {str(e)}"}), 500
 
 def envoyer_avec_pj(destinataire, nom_tsens, sujet, fichier, nom_affiche=None):
-    EXPEDITEUR = "mahfiorenana@gmail.com"
-
-    # ✅ Credentials depuis les variables d'environnement
+    creds_data = json.loads(os.environ.get("GOOGLE_CREDENTIALS"))
+    
     creds = Credentials(
         token=None,
-        refresh_token=os.environ.get("GMAIL_REFRESH_TOKEN"),
+        refresh_token=creds_data["refresh_token"],
         token_uri="https://oauth2.googleapis.com/token",
-        client_id=os.environ.get("GMAIL_CLIENT_ID"),
-        client_secret=os.environ.get("GMAIL_CLIENT_SECRET"),
-        scopes=["https://mail.google.com/"]
+        client_id=creds_data["client_id"],
+        client_secret=creds_data["client_secret"]
     )
 
-    # ✅ Rafraîchit automatiquement le token
-    creds.refresh(Request())
+    service = build('gmail', 'v1', credentials=creds)
 
-    service = build("gmail", "v1", credentials=creds)
-
-    # ✅ Construire l'email
+    # Créer le message
     msg = MIMEMultipart()
-    msg["From"] = EXPEDITEUR
-    msg["To"] = destinataire
-    msg["Subject"] = f"{sujet} - {nom_tsens}"
-    msg.attach(MIMEText("Bonjour, veuillez trouver le fichier en pièce jointe.", "plain"))
+    msg['To'] = destinataire
+    msg['Subject'] = sujet
+    msg.attach(MIMEText(corps, 'plain'))
 
-    nom_final = nom_affiche if nom_affiche else os.path.basename(fichier)
-    with open(fichier, "rb") as f:
-        pj = MIMEBase("application", "octet-stream")
-        pj.set_payload(f.read())
-        encoders.encode_base64(pj)
-        pj.add_header("Content-Disposition", f"attachment; filename={nom_final}")
-        msg.attach(pj)
+    # Pièce jointe
+    if fichier_joint:
+        with open(fichier_joint, "rb") as f:
+            part = MIMEBase('application', 'octet-stream')
+            part.set_payload(f.read())
+        encoders.encode_base64(part)
+        part.add_header(
+            'Content-Disposition',
+            f'attachment; filename={os.path.basename(fichier_joint)}'
+        )
+        msg.attach(part)
 
-    # ✅ Encoder et envoyer
+    # Encoder et envoyer
     raw = base64.urlsafe_b64encode(msg.as_bytes()).decode()
     service.users().messages().send(
-        userId="me", body={"raw": raw}
+        userId='me',
+        body={'raw': raw}
     ).execute()
-
-    print("✅ Email envoyé via API Gmail OAuth2 !")
+    
+    print("✅ Email envoyé via Gmail API")
     
 @app.route('/download/<filename>')
 def download_file(filename):

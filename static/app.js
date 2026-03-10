@@ -2661,16 +2661,16 @@ function exporterTXT() {
         if (tds[3].innerText.trim() !== "") {
             let numFact  = tds[0].innerText.trim();
             dateFact     = tds[1].innerText.trim().split('-').reverse().join('/');
-            nomClient    = tds[3].innerText.trim();
+            nomClient    = tds[5].innerText.trim();
             let tsena    = tds[2].innerText.trim();
-            let ref      = tds[4].innerText.trim();
-            let article  = tds[5].innerText.trim();
-            let qte      = tds[6].innerText.trim();
-            let pu       = tds[7].innerText.trim();
-            let remise   = tds[8].innerText.trim();
-            let depot    = tds[11].innerHTML;
-            let affaire  = tds[12].innerHTML;
-            let code_fournisseur = tds[13] ? tds[13].innerHTML : "";
+            let ref      = tds[6].innerText.trim();
+            let article  = tds[7].innerText.trim();
+            let qte      = tds[8].innerText.trim();
+            let pu       = tds[9].innerText.trim();
+            let remise   = tds[10].innerText.trim();
+            let depot    = tds[12].innerHTML;
+            let affaire  = tds[13].innerHTML;
+            let code_fournisseur = tds[4] ? tds[4].innerHTML : "";
 
             let mtt = Number(qte) * Number(pu) * (1 - Number(remise) / 100);
 

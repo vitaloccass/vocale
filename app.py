@@ -466,7 +466,7 @@ def envoyer_avec_pj(destinataire, nom_tsens, sujet, fichier, nom_affiche=None):
     msg = MIMEMultipart()
     msg['To'] = destinataire
     msg['Subject'] = sujet
-    msg.attach(MIMEText(corps, 'plain'))
+    msg.attach(MIMEText("Bonjour", 'plain'))
 
     # Pièce jointe
     if fichier_joint:

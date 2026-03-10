@@ -465,18 +465,18 @@ def envoyer_avec_pj(destinataire, nom_tsens, sujet, fichier, nom_affiche=None):
     # Créer le message
     msg = MIMEMultipart()
     msg['To'] = destinataire
-    msg['Subject'] = sujet
+    msg['Subject'] = nom_tsens
     msg.attach(MIMEText("Bonjour", 'plain'))
 
     # Pièce jointe
-    if fichier_joint:
-        with open(fichier_joint, "rb") as f:
+    if fichier:
+        with open(fichier, "rb") as f:
             part = MIMEBase('application', 'octet-stream')
             part.set_payload(f.read())
         encoders.encode_base64(part)
         part.add_header(
             'Content-Disposition',
-            f'attachment; filename={os.path.basename(fichier_joint)}'
+            f'attachment; filename={os.path.basename(fichier)}'
         )
         msg.attach(part)
 

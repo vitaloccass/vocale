@@ -25,9 +25,6 @@ from email.mime.base import MIMEBase
 from email import encoders
 from google.oauth2.credentials import Credentials
 from google.auth.transport.requests import Request
-from dotenv import load_dotenv
-
-load_dotenv()
 
 app = Flask(__name__)
 app.secret_key = "secret123"  # CHANGEZ CETTE CLÉ EN PRODUCTION

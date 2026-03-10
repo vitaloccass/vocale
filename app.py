@@ -422,7 +422,7 @@ def upload_file():
 
         # ✅ 3. Envoyer avec le chemin complet
         envoyer_avec_pj("andrivolavita@gmail.com", nom_tsens, "Bonjour", chemin_fichier, filename)
-        print("✅ Email envoyé avec succès")
+        print("✅ Email envoyé avec succèsss")
 
         # ✅ 4. Supprimer le fichier temporaire après envoi
         os.remove(chemin_fichier)

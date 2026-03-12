@@ -221,36 +221,34 @@ function filtrerArticles(motCle) {
     
     if (!selectArticle) return;
     
-    // Récupérer toutes les options
     const options = Array.from(selectArticle.options);
     
-    // IMPORTANT : Remplir articlesFiltre avec les options filtrées
+    // Normaliser motCle en tableau de mots
+    const mots = Array.isArray(motCle) 
+        ? motCle.map(m => m.toLowerCase())
+        : String(motCle).toLowerCase().split(/[\s,]+/).filter(m => m.length > 0);
+
+    // Filtrer les articles
     articlesFiltre = options.filter(option => {
         const texte = option.textContent.toLowerCase();
-        return texte.includes(motCle);
+        return mots.some(mot => texte.includes(mot));
     });
     
     // Afficher/Cacher les options
     options.forEach(option => {
         const texte = option.textContent.toLowerCase();
-        
-        if (texte.includes(motCle)) {
-            option.style.display = ""; // Afficher
-        } else {
-            option.style.display = "none"; // Cacher
-        }
+        const visible = mots.some(mot => texte.includes(mot));
+        option.style.display = visible ? "" : "none";
     });
     
     // Afficher la liste numérotée
     afficherListeFiltre(articlesFiltre);
     
-    // Sélectionner le fournisseur dans le select original
     const select = document.getElementById('fournisseurSelect');
     if (select) {
-        select.value = options.value;
-        // Déclencher l'événement change si nécessaire
         select.dispatchEvent(new Event('change', { bubbles: true }));
     }
+
     console.log(`${articlesFiltre.length} articles trouvés avec "${motCle}"`);
 }
 
@@ -2309,9 +2307,13 @@ function traiterCommande(transcript) {
         ajouterLigne();
     }else if (cmd.includes("article") || cmd.includes("Article")) {
         const motCle = cmd.replace("article", "").trim();
-    
+
         if (motCle) {
-            filtrerArticles(motCle);
+            if(motCle=='repas'){
+                filtrerArticles(['vary','henomby','pizza','mayonnaise','ketchup','pate','saucisse','totokena','vantan']);
+            }else{
+                filtrerArticles(motCle);
+            }
         }
     } else if (/^\d+$/.test(convertirMotsEnChiffres(cmd))) {
         const numero = parseInt(convertirMotsEnChiffres(cmd));

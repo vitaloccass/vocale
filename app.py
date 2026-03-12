@@ -5,14 +5,11 @@ from datetime import datetime, timedelta
 from functools import wraps
 import uuid
 import os
-import io
-from google.oauth2.credentials import Credentials
 from googleapiclient.discovery import build
 from google.auth.transport.requests import Request
 import requests
 import json
 from google.oauth2 import service_account
-import smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
@@ -24,7 +21,8 @@ from email.mime.text import MIMEText
 from email.mime.base import MIMEBase
 from email import encoders
 from google.oauth2.credentials import Credentials
-from google.auth.transport.requests import Request
+from google_auth_oauthlib.flow import InstalledAppFlow
+
 
 app = Flask(__name__)
 app.secret_key = "secret123"  # CHANGEZ CETTE CLÉ EN PRODUCTION

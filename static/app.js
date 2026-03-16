@@ -605,6 +605,7 @@ function selectionnerArticleParNumero(numero) {
     if (lblfournisseur && lblfournisseur.innerText.trim() === "") {
         recupererFournisseurs();
     }else{
+        recupererFournisseurs();
         let listeDiv = document.getElementById('liste-fournisseurs-filtre');
         if (!listeDiv) {
             listeDiv = document.createElement('div');
@@ -1898,7 +1899,7 @@ function traiterChoixdebut(choix) {
                 fournisseur.innerText=data.nom_tsena.replace('LOCCA','').trim();
             });
 
-            afficher_magasins(magasinsFiltre);
+            //afficher_magasins(magasinsFiltre);
         }
     }
 
@@ -2201,24 +2202,37 @@ function selectionnerDebut(numero) {
         const lblaffaire = document.querySelector(".lblaffaire");
         const lblnumfact = document.querySelector(".lblnum_fact");
 
-        lblMagasin.innerText = rec_code_tsena;
-        lbldepot.innerText = rec_depot;
-        lblaffaire.innerText = rec_affaire;
-        lblnumfact.innerText = rec_num_fact;
+        recup_code_tsena(code, data => {
+            const num_fact = targetRow.children[0];
+            const tdDate = targetRow.children[1];
+            const code_tsena = targetRow.children[2];
+            const tsena = targetRow.children[3];
+            const depot = targetRow.children[12];
+            const affaire = targetRow.children[13];
+            const code_fournisseur = targetRow.children[4];
+            const fournisseur = targetRow.children[5];
 
-        const rec = lblMagasin.innerText;
-        const rec1 = lbldepot.innerText;
-        const rec2 = lblaffaire.innerText;
-        const rec3 = lblnumfact.innerText;
+            num_fact.innerText=data.num_fact;
 
-        tdtsena.innerText   = rec;
-        tdDepot.innerText   = rec1;
-        tdAffaire.innerText = rec2;
-        tdNumFact.innerText = rec3;
+            let d = new Date();
+            let date =
+                d.getFullYear() + "-" +
+                String(d.getMonth() + 1).padStart(2, "0") + "-" +
+                String(d.getDate()).padStart(2, "0");
 
-        nom_tsena=data.nom_tsena;
+            // ✅ écrire la date
+            tdDate.innerText = date;
 
-        afficher_magasins(magasinsFiltre);
+            const ctype = document.getElementById('type');
+
+            code_tsena.innerText=data.code_tsena;
+            tsena.innerText=data.nom_tsena.replace('LOCCA','').trim();
+
+            depot.innerText=data.depot;
+            affaire.innerText=data.affaire;
+        });
+
+       // afficher_magasins(magasinsFiltre);
     }
 }
 
@@ -2320,19 +2334,20 @@ function traiterCommande(transcript) {
         // Vérifier si la liste de début est affichée
         const listeDebut = document.getElementById('liste-debut-filtre');
         recs_tsena=recup_tsena;
+        
         if (listeDebut) {
             // Si la liste de début est affichée, sélectionner vente/achat
             selectionnerDebut(numero);
             recup="1";
         } else if (articlesFiltre.length > 0) {
             // Sinon, sélectionner un article
-            if(recup != ""){
+            //if(recup != ""){
                 if(fournisseurFiltre.length == 0){
                     selectionnerArticleParNumero(numero);
                 }else{
                     selectionnerFournisseurParNumero(numero);
                 }
-            }
+            //}
         } else if (magasinsFiltre.length > 0) {
             // Sinon, sélectionner un magasin
 

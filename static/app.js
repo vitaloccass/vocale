@@ -152,10 +152,8 @@ function toggleListenings() {
         };
 
         const ctype = document.getElementById('type');
-        const isUser = ctype.textContent.trim() === "user";
-
-        // Un seul appel, avant le start()
-        isUser ? afficherDebut() : afficherDebuts();
+        
+        afficherDebuts();
 
         setTimeout(() => {
             recognition.start();
@@ -178,13 +176,7 @@ function toggleListening() {
     let btn = document.getElementById("micBtn");
 
     if(btn.innerText != "⏸️ Arrêter"){
-        const ctype = document.getElementById('type');
-        let tdtsena=null;
-        if(ctype.textContent.trim() !== "user"){
-            afficherDebuts();
-        }else{
-            afficherDebut();
-        }
+        afficherDebuts();
     }else{
         location.reload();
     }
@@ -370,10 +362,10 @@ function afficherListeFiltre(articles) {
                 select.dispatchEvent(new Event('change', { bubbles: true }));
             }
             
-            // Fermer la popup
+            // Fermer la popups
             listeDiv.remove();
-
             const lblfournisseur = document.querySelector(".lblfournisseur");
+
             if (lblfournisseur && lblfournisseur.innerText.trim() === "") {
                 recupererFournisseurs();
             }else{
@@ -600,12 +592,11 @@ function selectionnerArticleParNumero(numero) {
     }else{
         nom_article.innerText   = optionChoisie.textContent;
     }
-    
+
     const lblfournisseur = document.querySelector(".lblfournisseur");
     if (lblfournisseur && lblfournisseur.innerText.trim() === "") {
         recupererFournisseurs();
     }else{
-        recupererFournisseurs();
         let listeDiv = document.getElementById('liste-fournisseurs-filtre');
         if (!listeDiv) {
             listeDiv = document.createElement('div');
@@ -1691,13 +1682,11 @@ function selectionnermagasin(numero){
         const lbldepot = document.querySelector(".lbldepot");
         const lblaffaire = document.querySelector(".lblaffaire");
         const lblnumfact = document.querySelector(".lblnum_fact");
-        const lblfournisseur = document.querySelector(".lblfournisseur");
-
+        
         if(ctype.textContent.trim() !== "user"){
             lblMagasin.innerText = data.code_tsena;
         }else{
             lblMagasin.innerText = data.nom_tsena;
-            lblfournisseur.innerHTML=data.nom_tsena;
         }
 
         lbldepot.innerText = data.depot;
@@ -1725,97 +1714,6 @@ function selectionnermagasin(numero){
     }
 }
 
-let choixDebut = ["BC ACHAT", "FACT ACHAT"];
-function afficherDebut() {
-    select = document.getElementById('articleSelect');
-    const select1 = document.getElementById('fournisseurSelect');
-    select.innerHTML = '';
-    select1.innerHTML = '';
-
-    let listeDiv = document.getElementById('liste-debut-filtre');
-
-    if (!listeDiv) {
-        listeDiv = document.createElement('div');
-        listeDiv.id = 'liste-debut-filtre';
-        listeDiv.style.cssText = `
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            border: 2px solid #333;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            z-index: 9999;
-            max-height: 400px;
-            overflow-y: auto;
-        `;
-        document.body.appendChild(listeDiv);
-    }
-
-    listeDiv.innerHTML = '<h3>Choisissez (dites le numéro ou cliquez) :</h3>';
-
-    const ul = document.createElement('ul');
-    ul.style.cssText = 'list-style: none; padding: 0;';
-
-    const li1 = document.createElement('li');
-    li1.style.cssText = `
-        padding: 8px; 
-        margin: 5px 0; 
-        background: #f0f0f0; 
-        border-radius: 4px;
-        cursor: pointer;
-        transition: background 0.2s;
-    `;
-    li1.textContent = `1. BC ACHAT`;
-
-    // ✅ Hover effect
-    li1.addEventListener('mouseenter', () => {
-        li1.style.background = '#d0d0d0';
-    });
-    li1.addEventListener('mouseleave', () => {
-        li1.style.background = '#f0f0f0';
-    });
-
-    // ✅ Clic sur BC ACHAT
-    li1.addEventListener('click', () => {
-        console.log("✅ BC ACHAT sélectionné");
-        // Votre action ici
-        traiterChoixdebut('BC ACHAT');
-        listeDiv.remove(); // ferme la popup
-    });
-
-    ul.appendChild(li1);
-
-    const li2 = document.createElement('li');
-    li2.style.cssText = `
-        padding: 8px; 
-        margin: 5px 0; 
-        background: #f0f0f0; 
-        border-radius: 4px;
-        cursor: pointer;
-        transition: background 0.2s;
-    `;
-    li2.textContent = `2. FACT ACHAT`;
-
-    li2.addEventListener('mouseenter', () => {
-        li2.style.background = '#d0d0d0';
-    });
-    li2.addEventListener('mouseleave', () => {
-        li2.style.background = '#f0f0f0';
-    });
-
-    // ✅ Clic sur FACT ACHAT
-    li2.addEventListener('click', () => {
-        console.log("✅ FACT ACHAT sélectionné");
-        traiterChoixdebut('FACT ACHAT');
-        listeDiv.remove();
-    });
-
-    ul.appendChild(li2);
-    listeDiv.appendChild(ul);
-}
 // Fonction pour traiter le choix
 function traiterChoixdebut(choix) {
     const lbltype = document.querySelector('.lbltype');
@@ -1872,13 +1770,10 @@ function traiterChoixdebut(choix) {
                 const lbldepot = document.querySelector(".lbldepot");
                 const lblaffaire = document.querySelector(".lblaffaire");
                 const lblnumfact = document.querySelector(".lblnum_fact");
-                const lblfournisseur = document.querySelector(".lblfournisseur");
-
                 if(ctype.textContent.trim() !== "user"){
                     lblMagasin.innerText = data.code_tsena;
                 }else{
                     lblMagasin.innerText = data.nom_tsena;
-                    lblfournisseur.innerHTML=data.nom_tsena;
                 }
 
                 lbldepot.innerText = data.depot;
@@ -1898,8 +1793,6 @@ function traiterChoixdebut(choix) {
                 code_fournisseur.innerText=data.code_tsena;
                 fournisseur.innerText=data.nom_tsena.replace('LOCCA','').trim();
             });
-
-            //afficher_magasins(magasinsFiltre);
         }
     }
 
@@ -1984,88 +1877,149 @@ function afficherDebuts() {
     const ul = document.createElement('ul');
     ul.style.cssText = 'list-style: none; padding: 0;';
 
-    const li1 = document.createElement('li');
-    li1.style.cssText = `
-        padding: 8px; 
-        margin: 5px 0; 
-        background: #f0f0f0; 
-        border-radius: 4px;
-        cursor: pointer;
-        transition: background 0.2s;
-    `;
-    li1.textContent = `1. VENTE`;
+    const ctype = document.getElementById('type');
+    if(ctype.textContent.trim() !== "user"){
+        const li1 = document.createElement('li');
+        li1.style.cssText = `
+            padding: 8px; 
+            margin: 5px 0; 
+            background: #f0f0f0; 
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        `;
+        li1.textContent = `1. VENTE`;
 
-    // ✅ Hover effect
-    li1.addEventListener('mouseenter', () => {
-        li1.style.background = '#d0d0d0';
-    });
-    li1.addEventListener('mouseleave', () => {
-        li1.style.background = '#f0f0f0';
-    });
+        // ✅ Hover effect
+        li1.addEventListener('mouseenter', () => {
+            li1.style.background = '#d0d0d0';
+        });
+        li1.addEventListener('mouseleave', () => {
+            li1.style.background = '#f0f0f0';
+        });
 
-    // ✅ Clic sur BC ACHAT
-    li1.addEventListener('click', () => {
-        console.log("✅ VENTE sélectionné");
-        // Votre action ici
-        traiterChoixdebut('VENTE');
-        listeDiv.remove(); // ferme la popup
-    });
+        // ✅ Clic sur BC ACHAT
+        li1.addEventListener('click', () => {
+            console.log("✅ VENTE sélectionné");
+            // Votre action ici
+            traiterChoixdebut('VENTE');
+            listeDiv.remove(); // ferme la popup
+        });
 
-    ul.appendChild(li1);
+        ul.appendChild(li1);
 
-    const li2 = document.createElement('li');
-    li2.style.cssText = `
-        padding: 8px; 
-        margin: 5px 0; 
-        background: #f0f0f0; 
-        border-radius: 4px;
-        cursor: pointer;
-        transition: background 0.2s;
-    `;
-    li2.textContent = `2. BC ACHAT`;
+        const li2 = document.createElement('li');
+        li2.style.cssText = `
+            padding: 8px; 
+            margin: 5px 0; 
+            background: #f0f0f0; 
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        `;
+        li2.textContent = `2. BC ACHAT`;
 
-    li2.addEventListener('mouseenter', () => {
-        li2.style.background = '#d0d0d0';
-    });
-    li2.addEventListener('mouseleave', () => {
-        li2.style.background = '#f0f0f0';
-    });
+        li2.addEventListener('mouseenter', () => {
+            li2.style.background = '#d0d0d0';
+        });
+        li2.addEventListener('mouseleave', () => {
+            li2.style.background = '#f0f0f0';
+        });
 
-    // ✅ Clic sur FACT ACHAT
-    li2.addEventListener('click', () => {
-        console.log("✅ BC ACHAT sélectionné");
-        traiterChoixdebut('BC ACHAT');
-        listeDiv.remove();
-    });
+        // ✅ Clic sur FACT ACHAT
+        li2.addEventListener('click', () => {
+            console.log("✅ BC ACHAT sélectionné");
+            traiterChoixdebut('BC ACHAT');
+            listeDiv.remove();
+        });
 
-    ul.appendChild(li2);
+        ul.appendChild(li2);
 
-    const li3 = document.createElement('li');
-    li3.style.cssText = `
-        padding: 8px; 
-        margin: 5px 0; 
-        background: #f0f0f0; 
-        border-radius: 4px;
-        cursor: pointer;
-        transition: background 0.2s;
-    `;
-    li3.textContent = `3. FACT ACHAT`;
+        const li3 = document.createElement('li');
+        li3.style.cssText = `
+            padding: 8px; 
+            margin: 5px 0; 
+            background: #f0f0f0; 
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        `;
+        li3.textContent = `3. FACT ACHAT`;
 
-    li3.addEventListener('mouseenter', () => {
-        li3.style.background = '#d0d0d0';
-    });
-    li3.addEventListener('mouseleave', () => {
-        li3.style.background = '#f0f0f0';
-    });
+        li3.addEventListener('mouseenter', () => {
+            li3.style.background = '#d0d0d0';
+        });
+        li3.addEventListener('mouseleave', () => {
+            li3.style.background = '#f0f0f0';
+        });
 
-    // ✅ Clic sur FACT ACHAT
-    li3.addEventListener('click', () => {
-        console.log("✅ FACT ACHAT sélectionné");
-        traiterChoixdebut('FACT ACHAT');
-        listeDiv.remove();
-    });
+        // ✅ Clic sur FACT ACHAT
+        li3.addEventListener('click', () => {
+            console.log("✅ FACT ACHAT sélectionné");
+            traiterChoixdebut('FACT ACHAT');
+            listeDiv.remove();
+        });
 
-    ul.appendChild(li3);
+        ul.appendChild(li3);
+    }else{
+
+        const li1 = document.createElement('li');
+        li1.style.cssText = `
+            padding: 8px; 
+            margin: 5px 0; 
+            background: #f0f0f0; 
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        `;
+        li1.textContent = `1. BC ACHAT`;
+
+        // ✅ Hover effect
+        li1.addEventListener('mouseenter', () => {
+            li1.style.background = '#d0d0d0';
+        });
+        li1.addEventListener('mouseleave', () => {
+            li1.style.background = '#f0f0f0';
+        });
+
+        // ✅ Clic sur BC ACHAT
+        li1.addEventListener('click', () => {
+            console.log("✅ BC ACHAT sélectionné");
+            // Votre action ici
+            traiterChoixdebut('BC ACHAT');
+            listeDiv.remove(); // ferme la popup
+        });
+
+        ul.appendChild(li1);
+
+        const li2 = document.createElement('li');
+        li2.style.cssText = `
+            padding: 8px; 
+            margin: 5px 0; 
+            background: #f0f0f0; 
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.2s;
+        `;
+        li2.textContent = `2. FACT ACHAT`;
+
+        li2.addEventListener('mouseenter', () => {
+            li2.style.background = '#d0d0d0';
+        });
+        li2.addEventListener('mouseleave', () => {
+            li2.style.background = '#f0f0f0';
+        });
+
+        // ✅ Clic sur FACT ACHAT
+        li2.addEventListener('click', () => {
+            console.log("✅ FACT ACHAT sélectionné");
+            traiterChoixdebut('FACT ACHAT');
+            listeDiv.remove();
+        });
+
+        ul.appendChild(li2);
+    }
+
     listeDiv.appendChild(ul);
 }
 
@@ -2231,8 +2185,6 @@ function selectionnerDebut(numero) {
             depot.innerText=data.depot;
             affaire.innerText=data.affaire;
         });
-
-       // afficher_magasins(magasinsFiltre);
     }
 }
 
@@ -2336,24 +2288,16 @@ function traiterCommande(transcript) {
         recs_tsena=recup_tsena;
         
         if (listeDebut) {
-            // Si la liste de début est affichée, sélectionner vente/achat
             selectionnerDebut(numero);
             recup="1";
         } else if (articlesFiltre.length > 0) {
-            // Sinon, sélectionner un article
-            //if(recup != ""){
-                if(fournisseurFiltre.length == 0){
-                    selectionnerArticleParNumero(numero);
-                }else{
-                    selectionnerFournisseurParNumero(numero);
-                }
-            //}
-        } else if (magasinsFiltre.length > 0) {
-            // Sinon, sélectionner un magasin
-
-            if(recup != ""){
-                selectionnermagasin(numero);
+            if(fournisseurFiltre.length == 0){
+                selectionnerArticleParNumero(numero);
+            }else{
+                selectionnerFournisseurParNumero(numero);
             }
+        } else if (magasinsFiltre.length > 0) {
+            selectionnermagasin(numero);
         } 
     }else if(cmd.includes("envoyer")){
         exporterTXT();

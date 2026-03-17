@@ -2357,6 +2357,7 @@ function traiterCommande(transcript) {
         } 
     }else if(cmd.includes("envoyer")){
         exporterTXT();
+        reinitialiser(); 
     }else if(cmd.includes("nouvelle")){
         reinitialiser(); 
     }
@@ -2675,11 +2676,12 @@ function exporterTXT() {
 
     trs.forEach(tr => {
         let tds = tr.querySelectorAll("td");
+        //console.log(tds);
         if (tds[3].innerText.trim() !== "") {
             let numFact  = tds[0].innerText.trim();
             dateFact     = tds[1].innerText.trim().split('-').reverse().join('/');
             nomClient    = tds[5].innerText.trim();
-            let tsena    = tds[2].innerText.trim();
+            let tsena    = tds[13].innerText.trim();
             let ref      = tds[6].innerText.trim();
             let article  = tds[7].innerText.trim();
             let qte      = tds[8].innerText.trim();

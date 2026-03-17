@@ -2345,6 +2345,20 @@ function reinitialiser(){
     }
 
     tableBody.appendChild(nouvelleLigne);
+    
+    let btn = document.getElementById("micBtn");
+    isListening = false;
+    btn.classList.remove("listening");
+    btn.innerText = "🎤 Commencer";
+
+    // Relancer seulement quand recognition est vraiment arrêté
+    recognition.onend = () => {
+        recognition.onend = null;
+        handleMicClick(); // ← appelé ici, pas avant
+    };
+
+    recognition.stop();
+
 }
 
 function recup_code_tsena(code, callback) {

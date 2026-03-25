@@ -2671,7 +2671,6 @@ function exporterTXT() {
                 'LOCA001','LOCB001','LOCJ003','LOCP001','LOCP016','LOCU001'
             ];
 
-            let code = targetRow.children[4]?.innerText?.trim() || '';
             let prix = tds[9]?.innerText?.trim() || '0';
 
             // conversion propre
@@ -2681,7 +2680,7 @@ function exporterTXT() {
 
             let prixNum = toNumber(prix);
 
-            if (fournisseursSpeciaux.includes(code)) {
+            if (fournisseursSpeciaux.includes(code_fournisseur)) {
                 pu = prixNum * 1.2;
             } else {
                 pu = prixNum;

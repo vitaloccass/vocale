@@ -341,6 +341,7 @@ function afficherListeFiltre(articles) {
             }
             const code_article = targetRow.children[6];
             const nom_article = targetRow.children[7];
+            
 
             if(opt.textContent.includes('/')){
                 const elements = opt.textContent.split('/');
@@ -2593,6 +2594,15 @@ function init(){
 
 function calculerTTC(){
     let trs = document.querySelectorAll("#table-body tr");
+    if (!trs.length) return;
+
+    let targetRow = null;
+
+
+    // si aucune ligne vide trouvée → prendre la dernière
+    if (!targetRow) {
+        targetRow = trs[trs.length - 1];
+    }
 
     trs.forEach(tr => {
         let tds = tr.querySelectorAll("td");
@@ -2601,8 +2611,19 @@ function calculerTTC(){
             let qte = tds[8].innerText.trim();
             let pu = tds[9].innerText.trim();
             let remise = tds[10].innerText.trim();
+            let code_fournisseur = targetRow.children[4].innerText.trim();
 
-            let mtt = Number(qte) * Number(pu) * (1 - Number(remise)/100);
+            let mtt = 0;
+
+            const fournisseursSpeciaux = [
+                'LOCA001','LOCB001','LOCJ003','LOCP001','LOCP016','LOCU001'
+            ];
+
+            if (fournisseursSpeciaux.includes(code_fournisseur)) {
+                mtt = Number(qte) * (Number(pu) * 1.2);
+            } else {
+                mtt = Number(qte) * Number(pu) * (1 - Number(remise) / 100);
+            }
 
             tds[11].innerText = mtt.toFixed(2);
         //}

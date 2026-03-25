@@ -2664,7 +2664,29 @@ function exporterTXT() {
             let ref      = tds[6].innerText.trim();
             let article  = tds[7].innerText.trim();
             let qte      = tds[8].innerText.trim();
-            let pu       = tds[9].innerText.trim();
+
+            let pu = 0;
+
+            const fournisseursSpeciaux = [
+                'LOCA001','LOCB001','LOCJ003','LOCP001','LOCP016','LOCU001'
+            ];
+
+            let code = targetRow.children[4]?.innerText?.trim() || '';
+            let prix = tds[9]?.innerText?.trim() || '0';
+
+            // conversion propre
+            function toNumber(val) {
+                return Number(val.replace(/\s/g, '').replace(',', '.')) || 0;
+            }
+
+            let prixNum = toNumber(prix);
+
+            if (fournisseursSpeciaux.includes(code)) {
+                pu = prixNum * 1.2;
+            } else {
+                pu = prixNum;
+            }
+
             let remise   = tds[10].innerText.trim();
             let depot    = tds[12].innerHTML;
             let affaire  = tds[13].innerHTML;

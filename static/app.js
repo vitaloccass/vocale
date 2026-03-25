@@ -2672,14 +2672,14 @@ function exporterTXT() {
             ];
 
             let prix = tds[9]?.innerText?.trim() || '0';
-            let code_fournisseur = tds[4] ? tds[4].innerHTML : "";
+
             // conversion propre
             function toNumber(val) {
                 return Number(val.replace(/\s/g, '').replace(',', '.')) || 0;
             }
 
             let prixNum = toNumber(prix);
-
+            let code_fournisseur = tds[4] ? tds[4].innerHTML : "";
             if (fournisseursSpeciaux.includes(code_fournisseur)) {
                 pu = prixNum * 1.2;
             } else {
@@ -2688,8 +2688,8 @@ function exporterTXT() {
 
             let remise   = tds[10].innerText.trim();
             let depot    = tds[12].innerHTML;
-            let affaire  = tds[2].innerHTML;
-            
+            let affaire  = tds[14].innerHTML;
+            alert(affaire);
 
             let mtt = Number(qte) * Number(pu) * (1 - Number(remise) / 100);
 

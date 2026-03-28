@@ -2689,8 +2689,8 @@ function exporterTXT() {
             }
 
             let remise   = tds[11].innerText.trim();
-            let depot    = tds[13].innerHTML;
-            let affaire  = tds[14].innerHTML;
+            let depot    = tds[13].innerText.trim();
+            let affaire  = tds[14].innerText.trim();
 
             let mtt = Number(qte) * Number(pu) * (1 - Number(remise) / 100);
 

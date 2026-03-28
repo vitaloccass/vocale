@@ -2622,9 +2622,9 @@ function calculerTTC(){
             ];
 
             if (fournisseursSpeciaux.includes(code_fournisseur)) {
-                mtt = Number(qte) * ((Number(pu) * 1.2)* (1 - Number(remise) / 100));
+                mtt = (Number(qte) * ((Number(pu) * (1 - Number(remise) / 100)))) * 1.2;
             } else {
-                mtt = Number(qte) * Number(pu) * (1 - Number(remise) / 100);
+                mtt = Number(qte) * (Number(pu) * (1 - Number(remise) / 100));
             }
 
             tds[11].innerText = mtt.toFixed(2);

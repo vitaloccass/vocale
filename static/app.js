@@ -2690,7 +2690,7 @@ function exporterTXT() {
 
             let remise   = tds[11].innerText.trim();
             let depot    = tds[13].innerHTML;
-            let affaire  = tds[14].innerHTML;
+            let affaire  = tds[12].innerHTML;
 
             alert(affaire);
             alert(depot);

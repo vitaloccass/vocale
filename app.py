@@ -521,38 +521,30 @@ def get_fournisseur():
 
 @app.route('/get_stock', methods=['GET'])
 def get_stock():
-    url = "https://api.fulleapps.io/products"
-    headers = {
-        "X-Api-Key": "LwwMBbtNxMxvdMVcX4gXRVhscf5Q4K",
-        "Authorization": "Mutual f585bd1e3b10f9a8eb7ac4c82f6478c6ae94d73a",
-        "Connection": "keep-alive"
-    }
-    params = {
-        "page": 1,
-        "offset": 10000,
-        "limit": 10000,
-        "all": 1
-    }
-
+    conn = connecter_sqlite()
     try:
-        response = requests.get(url, headers=headers, params=params, timeout=15)
-        response.raise_for_status()
-        data = response.json()
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT reference, designation FROM correspondance_article"
+        )
+        rows = cursor.fetchall()
 
-        if 'list' in data and isinstance(data['list'], list):
-            articles_valides = [
-                article for article in data['list']
-                if article.get('archive') == 0 and article.get('name') and
-                article.get('id') and
-                str(article.get('name')).strip() != '' and
-                str(article.get('id')).strip() != ''
-            ]
-            articles_uniques = {article['id']: article for article in articles_valides}
-            data['list'] = list(articles_uniques.values())
-            print(f"✅ {len(data['list'])} articles uniques")
+        articles_valides = [
+            {"id": row[0], "name": row[1]}
+            for row in rows
+            if row[0] and row[1] and
+            str(row[0]).strip() != '' and
+            str(row[1]).strip() != ''
+        ]
 
-        return jsonify(data), 200
-    except requests.exceptions.RequestException as e:
+        articles_uniques = {article['id']: article for article in articles_valides}
+        articles_list = list(articles_uniques.values())
+
+        print(f"✅ {len(articles_list)} articles uniques")
+
+        return jsonify({"list": articles_list}), 200
+
+    except Exception as e:
         return jsonify({"error": str(e)}), 500
 
 # ============= INITIALISATION DB =============

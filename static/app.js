@@ -2278,6 +2278,8 @@ function traiterCommande(transcript) {
         if (motCle) {
             if(motCle=='repas'){
                 filtrerArticles(['vary','henomby','pizza','mayonnaise','ketchup','pate','saucisse','totokena','vantan']);
+            }else if(motCle=='boisson' || motCle=='boissons'){
+                filtrerArticles(['JUS NATUREL','CHOCOLAT CHAUD','THE A LA MENTHE MAISON','LAIT','THE GLACE MAISON','CAFE','THE NOIR','ORANGE GAZEUSE','EAU DE MONTAGNE 1L']);
             }else{
                 filtrerArticles(motCle);
             }

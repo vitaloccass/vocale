@@ -2689,13 +2689,10 @@ function exporterTXT() {
             }
 
             let remise   = tds[11].innerText.trim();
-            let depot    = tds[13].innerHTML;
-            let affaire  = tds[12].innerHTML;
+            let depot    = tds[12].innerHTML;
+            let affaire  = tds[13].innerHTML;
 
-            alert(affaire);
-            alert(depot);
-
-            let mtt = Number(qte) * Number(pu) * (1 - Number(remise) / 100);
+            let mtt = Number(qte) * Number(pu) * (Number(remise) / 100);
 
             if (recs.toLowerCase().includes("vente")) {
                 lines.push(`1\t6\t${numFact}\t${dateFact}\t${tsena}\t${nomClient}\t${ref}\t${article}\t${pu}\t${qte}\t${remise}\t${depot}\t${affaire}\t${rec_souche}`);

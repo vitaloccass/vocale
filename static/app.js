@@ -2622,7 +2622,7 @@ function calculerTTC(){
             ];
 
             if (fournisseursSpeciaux.includes(code_fournisseur)) {
-                mtt = Number(qte) * (Number(pu) * 1.2);
+                mtt = Number(qte) * ((Number(pu) * 1.2)* (1 - Number(remise) / 100));
             } else {
                 mtt = Number(qte) * Number(pu) * (1 - Number(remise) / 100);
             }

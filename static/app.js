@@ -2692,6 +2692,9 @@ function exporterTXT() {
             let depot    = tds[13].innerText.trim();
             let affaire  = tds[14].innerText.trim();
 
+            alert(affaire);
+            alert(depot);
+
             let mtt = Number(qte) * Number(pu) * (1 - Number(remise) / 100);
 
             if (recs.toLowerCase().includes("vente")) {

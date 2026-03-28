@@ -2621,6 +2621,7 @@ function calculerTTC(){
                 'LOCA001','LOCB001','LOCJ003','LOCP001','LOCP016','LOCU001'
             ];
 
+            alert(remise);
             if (fournisseursSpeciaux.includes(code_fournisseur)) {
                 mtt = (Number(qte) * ((Number(pu) * (1 - Number(remise) / 100)))) * 1.2;
             } else {

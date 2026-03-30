@@ -2304,7 +2304,6 @@ function traiterCommande(transcript) {
         } 
     }else if(cmd.includes("envoyer")){
         exporterTXT();
-        reinitialiser(); 
     }else if(cmd.includes("nouvelle")){
         reinitialiser(); 
     }
@@ -2779,6 +2778,8 @@ function exporterTXT() {
         console.error("❌ Erreur fetch :", err);
         alert("Erreur fetch : " + err.message);
     });
+
+    reinitialiser();
 }
 
 

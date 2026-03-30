@@ -2700,9 +2700,9 @@ function exporterTXT() {
                 pu = prixNum;
             }
 
-            let remise   = tds[11].innerText.trim();
-            let depot    = tds[12].innerHTML;
-            let affaire  = tds[13].innerHTML;
+            let remise   = tds[10].innerText.trim();
+            let depot    = tds[13].innerHTML;
+            let affaire  = tds[14].innerHTML;
 
             alert("Dépot : " + depot + "Affaire :"+affaire);
 

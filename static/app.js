@@ -1797,16 +1797,9 @@ function traiterChoixdebut(choix) {
         }
     }
 
-    const formData = new FormData();
-    const BASE_URL = window.location.origin;
-    const url = `${BASE_URL}/get_stock`;
-
-    fetch(url, {
-        method: "POST",
-        body: formData
-    })
-    .then(response => response.json())   // ← conversion en JSON obligatoire
-    .then(data => {
+    fetch(`/get_stock`)
+        .then(response => response.json())
+        .then(data => {
             const select = document.getElementById('articleSelect');
             const chargement = document.getElementById('chargement');
             select.innerHTML = '<option value="">-- Sélectionner un article --</option>';
@@ -2032,57 +2025,50 @@ function afficherDebuts() {
 }
 
 function selectionnerDebut(numero) {
-    const formData = new FormData();
-    const BASE_URL = window.location.origin;
-    const url = `${BASE_URL}/get_stock`;
-
-    fetch(url, {
-        method: "POST",
-        body: formData
-    })
-    .then(response => response.json())   // ← conversion en JSON obligatoire
-    .then(data => {
-        const select = document.getElementById('articleSelect');
-        select.innerHTML = '<option value="">-- Sélectionner un article --</option>';
-        
-        if (data.list && Array.isArray(data.list)) {
-            // Filtrer et dédupliquer
-            const articlesUniques = new Map();
+        fetch(`/get_stock`)
+        .then(response => response.json())
+        .then(data => {
+            const select = document.getElementById('articleSelect');
+            select.innerHTML = '<option value="">-- Sélectionner un article --</option>';
             
-            data.list.forEach(article => {
-                if (article?.name && article?.id) {
-                    const name = String(article.name).trim();
-                    const id = String(article.id).trim();
-                    
-                    if (name && id) {
-                        articlesUniques.set(id, name);
+            if (data.list && Array.isArray(data.list)) {
+                // Filtrer et dédupliquer
+                const articlesUniques = new Map();
+                
+                data.list.forEach(article => {
+                    if (article?.name && article?.id) {
+                        const name = String(article.name).trim();
+                        const id = String(article.id).trim();
+                        
+                        if (name && id) {
+                            articlesUniques.set(id, name);
+                        }
                     }
+                });
+                
+                // ✅ Trier par nom alphabétiquement
+                const articlesTries = Array.from(articlesUniques.entries())
+                    .sort((a, b) => a[1].localeCompare(b[1])); // Tri par nom
+                
+                // Ajouter au select
+                articlesTries.forEach(([id, name]) => {
+                    const option = document.createElement('option');
+                    option.value = id;
+                    option.textContent = name;
+                    select.appendChild(option);
+                });
+                
+                console.log(`✅ ${articlesUniques.size} articles uniques et triés`);
+                
+                if (articlesUniques.size === 0) {
+                    select.innerHTML = '<option value="">Aucun article disponible</option>';
                 }
-            });
-            
-            // ✅ Trier par nom alphabétiquement
-            const articlesTries = Array.from(articlesUniques.entries())
-                .sort((a, b) => a[1].localeCompare(b[1])); // Tri par nom
-            
-            // Ajouter au select
-            articlesTries.forEach(([id, name]) => {
-                const option = document.createElement('option');
-                option.value = id;
-                option.textContent = name;
-                select.appendChild(option);
-            });
-            
-            console.log(`✅ ${articlesUniques.size} articles uniques et triés`);
-            
-            if (articlesUniques.size === 0) {
-                select.innerHTML = '<option value="">Aucun article disponible</option>';
             }
-        }
-    })
-    .catch(err => {
-        console.error("Erreur:", err);
-        document.getElementById('articleSelect').innerHTML = '<option value="">❌ Erreur</option>';
-    });
+        })
+        .catch(err => {
+            console.error("Erreur:", err);
+            document.getElementById('articleSelect').innerHTML = '<option value="">❌ Erreur</option>';
+        });
 
     console.log("Numéro choisi:", numero);
     const ctype = document.getElementById('type');
@@ -2704,7 +2690,7 @@ function exporterTXT() {
 
             let remise   = tds[10].innerText.trim();
             let depot    = tds[13].innerHTML;
-            let affaire  = tds[14].innerHTML;
+            let affaire  = tds[11].innerHTML;
 
             alert("Dépot : " + depot + "Affaire :"+affaire);
 

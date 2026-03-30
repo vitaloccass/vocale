@@ -1797,6 +1797,7 @@ function traiterChoixdebut(choix) {
         }
     }
 
+    const formData = new FormData();
     const BASE_URL = window.location.origin;
     const url = `${BASE_URL}/get_stock`;
 
@@ -2031,56 +2032,57 @@ function afficherDebuts() {
 }
 
 function selectionnerDebut(numero) {
-        const BASE_URL = window.location.origin;
-        const url = `${BASE_URL}/get_stock`;
+    const formData = new FormData();
+    const BASE_URL = window.location.origin;
+    const url = `${BASE_URL}/get_stock`;
 
-        fetch(url, {
-            method: "POST",
-            body: formData
-        })
-        .then(response => response.json())   // ← conversion en JSON obligatoire
-        .then(data => {
-            const select = document.getElementById('articleSelect');
-            select.innerHTML = '<option value="">-- Sélectionner un article --</option>';
+    fetch(url, {
+        method: "POST",
+        body: formData
+    })
+    .then(response => response.json())   // ← conversion en JSON obligatoire
+    .then(data => {
+        const select = document.getElementById('articleSelect');
+        select.innerHTML = '<option value="">-- Sélectionner un article --</option>';
+        
+        if (data.list && Array.isArray(data.list)) {
+            // Filtrer et dédupliquer
+            const articlesUniques = new Map();
             
-            if (data.list && Array.isArray(data.list)) {
-                // Filtrer et dédupliquer
-                const articlesUniques = new Map();
-                
-                data.list.forEach(article => {
-                    if (article?.name && article?.id) {
-                        const name = String(article.name).trim();
-                        const id = String(article.id).trim();
-                        
-                        if (name && id) {
-                            articlesUniques.set(id, name);
-                        }
+            data.list.forEach(article => {
+                if (article?.name && article?.id) {
+                    const name = String(article.name).trim();
+                    const id = String(article.id).trim();
+                    
+                    if (name && id) {
+                        articlesUniques.set(id, name);
                     }
-                });
-                
-                // ✅ Trier par nom alphabétiquement
-                const articlesTries = Array.from(articlesUniques.entries())
-                    .sort((a, b) => a[1].localeCompare(b[1])); // Tri par nom
-                
-                // Ajouter au select
-                articlesTries.forEach(([id, name]) => {
-                    const option = document.createElement('option');
-                    option.value = id;
-                    option.textContent = name;
-                    select.appendChild(option);
-                });
-                
-                console.log(`✅ ${articlesUniques.size} articles uniques et triés`);
-                
-                if (articlesUniques.size === 0) {
-                    select.innerHTML = '<option value="">Aucun article disponible</option>';
                 }
+            });
+            
+            // ✅ Trier par nom alphabétiquement
+            const articlesTries = Array.from(articlesUniques.entries())
+                .sort((a, b) => a[1].localeCompare(b[1])); // Tri par nom
+            
+            // Ajouter au select
+            articlesTries.forEach(([id, name]) => {
+                const option = document.createElement('option');
+                option.value = id;
+                option.textContent = name;
+                select.appendChild(option);
+            });
+            
+            console.log(`✅ ${articlesUniques.size} articles uniques et triés`);
+            
+            if (articlesUniques.size === 0) {
+                select.innerHTML = '<option value="">Aucun article disponible</option>';
             }
-        })
-        .catch(err => {
-            console.error("Erreur:", err);
-            document.getElementById('articleSelect').innerHTML = '<option value="">❌ Erreur</option>';
-        });
+        }
+    })
+    .catch(err => {
+        console.error("Erreur:", err);
+        document.getElementById('articleSelect').innerHTML = '<option value="">❌ Erreur</option>';
+    });
 
     console.log("Numéro choisi:", numero);
     const ctype = document.getElementById('type');

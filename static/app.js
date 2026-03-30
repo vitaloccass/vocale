@@ -1797,9 +1797,15 @@ function traiterChoixdebut(choix) {
         }
     }
 
-    fetch(`/get_stock`)
-        .then(response => response.json())
-        .then(data => {
+    const BASE_URL = window.location.origin;
+    const url = `${BASE_URL}/get_stock`;
+
+    fetch(url, {
+        method: "POST",
+        body: formData
+    })
+    .then(response => response.json())   // ← conversion en JSON obligatoire
+    .then(data => {
             const select = document.getElementById('articleSelect');
             const chargement = document.getElementById('chargement');
             select.innerHTML = '<option value="">-- Sélectionner un article --</option>';
@@ -2025,8 +2031,14 @@ function afficherDebuts() {
 }
 
 function selectionnerDebut(numero) {
-        fetch(`/get_stock`)
-        .then(response => response.json())
+        const BASE_URL = window.location.origin;
+        const url = `${BASE_URL}/get_stock`;
+
+        fetch(url, {
+            method: "POST",
+            body: formData
+        })
+        .then(response => response.json())   // ← conversion en JSON obligatoire
         .then(data => {
             const select = document.getElementById('articleSelect');
             select.innerHTML = '<option value="">-- Sélectionner un article --</option>';

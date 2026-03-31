@@ -343,7 +343,7 @@ function afficherListeFiltre(articles) {
             const nom_article = targetRow.children[7];
             
 
-            if(opt.textContent.includes('/')){
+            /*if(opt.textContent.includes('/')){
                 const elements = opt.textContent.split('/');
                 
                 code_article.innerText   = elements[0];
@@ -352,9 +352,11 @@ function afficherListeFiltre(articles) {
                 }else{
                     nom_article.innerText   = elements[1];
                 }
-            }else{
+            }else{*/
                 nom_article.innerText   = opt.textContent;
-            }
+            //}
+
+            code_article.innerText=recuperer_code(opt.textContent.trim());
             // Sélectionner l'article dans le select original
             const select = document.getElementById('articleSelect');
             if (select) {
@@ -742,6 +744,22 @@ function selectionnerArticleParNumero(numero) {
             
             listeDiv.remove();
         });
+    }
+}
+
+function recuperer_code(designation) {
+    try {
+        const response = fetch(`/get_code/${encodeURIComponent(designation)}`);
+        const data = response.json();
+
+        if (data.reference) {
+            return data.reference;  // ✅ valeur retournée
+        } else {
+            return "Non trouvé";
+        }
+    } catch (err) {
+        console.error("Erreur:", err);
+        return "❌ Erreur";
     }
 }
 
@@ -2290,7 +2308,11 @@ function traiterCommande(transcript) {
         recs_tsena=recup_tsena;
         
         if (listeDebut) {
-            selectionnerDebut(numero);
+            const ctype = document.getElementById('type');
+            if(ctype.textContent.trim() !== "user")
+            {
+                selectionnerDebut(numero);
+            }
             recup="1";
         } else if (articlesFiltre.length > 0) {
             if(fournisseurFiltre.length == 0){

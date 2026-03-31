@@ -547,6 +547,28 @@ def get_stock():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/get_code/<designation>', methods=['GET'])
+def get_code(designation):
+    conn = connecter_sqlite()
+    try:
+        cursor = conn.cursor()
+        cursor.execute(
+            "SELECT reference FROM correspondance_article WHERE designation = ?",
+            (designation,)  # ✅ paramètre sécurisé (évite SQL injection)
+        )
+        row = cursor.fetchone()  # ✅ fetchone() minuscule
+
+        if row:
+            return jsonify({"reference": row[0]})
+        else:
+            return jsonify({"error": "Article non trouvé"}), 404
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+    finally:
+        conn.close()  # ✅ toujours fermer la connexion
+
 # ============= INITIALISATION DB =============
 
 def init_db():

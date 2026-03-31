@@ -1466,7 +1466,6 @@ function afficher_magasins(magasins) {
             const div = document.createElement('div');
             
             const screenWidth = window.innerWidth;
-            const screenHeight = window.innerHeight;
             let nbColonnes = 1;
             let fontSize = '1rem';
             let padding = '8px 12px';
@@ -2361,6 +2360,144 @@ function reinitialiser(){
 
     recognition.stop();
 
+    const div = document.createElement('div');
+    const screenWidth = window.innerWidth;
+
+    let nbColonnes = 1;
+    let fontSize = '1rem';
+    let padding = '8px 12px';
+
+    if (screenWidth < 480) {
+        // Mobile : maximiser l'espace
+        nbColonnes = 3; // 3 colonnes serrées
+        fontSize = '0.65rem'; // Très petit mais lisible
+        padding = '4px 6px';
+    } else if (screenWidth < 768) {
+        nbColonnes = 4;
+        fontSize = '0.75rem';
+        padding = '6px 8px';
+    } else if (screenWidth < 1024) {
+        nbColonnes = 4;
+        fontSize = '0.85rem';
+        padding = '8px 10px';
+    } else {
+        nbColonnes = 5;
+        fontSize = '1rem';
+        padding = '8px 12px';
+    }
+
+    div.style.cssText = `
+        position: relative;
+        padding: ${padding};
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 3px;
+        cursor: pointer;
+        transition: all 0.2s;
+        font-size: ${fontSize};
+        line-height: 1.2;
+        justify-content: left;   /* centre horizontal */
+        align-items: left;       /* centre vertical */
+        text-align: center;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        word-break: break-word;
+        max-width: 100%;
+        box-sizing: border-box;
+    `;
+    div.textContent = `${index + 1}. ${magasin}`;
+    
+    // Effet hover
+    div.addEventListener('mouseenter', () => {
+        div.style.background = '#007bff';
+        div.style.color = 'white';
+        div.style.transform = 'scale(1.02)';
+    });
+    
+    div.addEventListener('mouseleave', () => {
+        div.style.background = '#f8f9fa';
+        div.style.color = 'black';
+        div.style.transform = 'scale(1)';
+    });
+    
+    // Click handler
+    div.onclick = () => {
+        const choix = magasinsFiltre[index];
+        let code = '';
+        switch(index+1){
+            case 1 :code=180188;break;
+            case 2 :code=180170;break;
+            case 3 :code=180189;break;
+            case 4 :code=187823;break;
+            case 5 :code=180190;break;
+            case 6 :code=180186;break;
+            case 7 :code=186109;break;
+            case 8 :code=180191;break;
+            case 9 :code=180192;break;
+            case 10 :code=181290;break;
+            case 11 :code=183405;break;
+        }
+
+        let rows = document.querySelectorAll("#table-body tr");
+        if (!rows.length) return;
+
+        let targetRow = null;
+
+        rows.forEach(row => {
+            const tdClient = row.children[3];
+            if (tdClient && tdClient.innerText.trim() === "" && !targetRow) {
+                targetRow = row;
+            }
+        });
+
+        // si aucune ligne vide trouvée → prendre la dernière
+        if (!targetRow) {
+            targetRow = rows[rows.length - 1];
+        }
+        recup_code_tsena(code, data => {
+            const num_fact = targetRow.children[0];
+            const tdDate = targetRow.children[1];
+            const code_tsena = targetRow.children[2];
+            const tsena = targetRow.children[3];
+            const depot = targetRow.children[12];
+            const affaire = targetRow.children[13];
+            const code_fournisseur = targetRow.children[4];
+            const fournisseur = targetRow.children[5];
+
+            num_fact.innerText=data.num_fact;
+
+            let d = new Date();
+            let date =
+                d.getFullYear() + "-" +
+                String(d.getMonth() + 1).padStart(2, "0") + "-" +
+                String(d.getDate()).padStart(2, "0");
+
+            // ✅ écrire la date
+            tdDate.innerText = date;
+
+            const ctype = document.getElementById('type');
+            if(ctype.textContent.trim() !== "user")
+            {
+                code_tsena.innerText=data.code_tsena;
+                tsena.innerText=data.nom_tsena.replace('LOCCA','').trim();
+            }
+
+            
+            if(ctype.textContent.trim() == "user"){
+                code_fournisseur.innerText = data.code_tsena;
+                fournisseur.innerText = data.nom_tsena.replace('LOCCA','').trim();
+            }
+
+            depot.innerText=data.depot;
+            affaire.innerText=data.affaire;
+        });
+            
+        // Fermer la liste
+        const listeDiv = document.getElementById('liste-magasins-filtre');
+        if (listeDiv) {
+            listeDiv.remove();
+        }
+    };
 }
 
 function recup_code_tsena(code, callback) {

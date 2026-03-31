@@ -356,8 +356,8 @@ function afficherListeFiltre(articles) {
                 nom_article.innerText   = opt.textContent;
             //}
 
-            opt.addEventListener('click', async function() {
-                code_article.innerText = await recuperer_code(opt.textContent.trim());
+            recuperer_code(opt.textContent.trim(), function(result) {
+                code_article.innerText = result;
             });
             // Sélectionner l'article dans le select original
             const select = document.getElementById('articleSelect');
@@ -749,20 +749,20 @@ function selectionnerArticleParNumero(numero) {
     }
 }
 
-async function recuperer_code(designation) {
-    try {
-        const response = await fetch(`/get_code/${encodeURIComponent(designation)}`);
-        const data = await response.json();
-
-        if (data.reference) {
-            return data.reference;
-        } else {
-            return "Non trouvé";
-        }
-    } catch (err) {
-        console.error("Erreur:", err);
-        return "❌ Erreur";
-    }
+function recuperer_code(designation, callback) {
+    fetch(`/get_code/${encodeURIComponent(designation)}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.reference) {
+                callback(data.reference);
+            } else {
+                callback("Non trouvé");
+            }
+        })
+        .catch(err => {
+            console.error("Erreur:", err);
+            callback("❌ Erreur");
+        });
 }
 
 function selectionnerFournisseurParNumero(numero) {

@@ -356,7 +356,9 @@ function afficherListeFiltre(articles) {
                 nom_article.innerText   = opt.textContent;
             //}
 
-            code_article.innerText=recuperer_code(opt.textContent.trim());
+            opt.addEventListener('click', async function() {
+                code_article.innerText = await recuperer_code(opt.textContent.trim());
+            });
             // Sélectionner l'article dans le select original
             const select = document.getElementById('articleSelect');
             if (select) {
@@ -747,13 +749,13 @@ function selectionnerArticleParNumero(numero) {
     }
 }
 
-function recuperer_code(designation) {
+async function recuperer_code(designation) {
     try {
-        const response = fetch(`/get_code/${encodeURIComponent(designation)}`);
-        const data = response.json();
+        const response = await fetch(`/get_code/${encodeURIComponent(designation)}`);
+        const data = await response.json();
 
         if (data.reference) {
-            return data.reference;  // ✅ valeur retournée
+            return data.reference;
         } else {
             return "Non trouvé";
         }

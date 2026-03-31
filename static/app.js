@@ -2689,7 +2689,7 @@ function exporterTXT() {
 
             let remise   = tds[10].innerText.trim();
             let depot    = tds[12].innerHTML;
-            let affaire  = tds[13].innerHTML;
+            let affaire  = rec_affaire;
 
             let mtt = (Number(qte) * (Number(pu)-(Number(pu) * (Number(remise) / 100))))* 1.2;
 

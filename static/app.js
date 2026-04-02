@@ -2304,10 +2304,16 @@ function traiterCommande(transcript) {
             }
         }
     } else if (/^\d+$/.test(convertirMotsEnChiffres(cmd))) {
+
         const numero = parseInt(convertirMotsEnChiffres(cmd));
         // Vérifier si la liste de début est affichée
         const listeDebut = document.getElementById('liste-debut-filtre');
-        recs_tsena=recup_tsena;
+
+        const ctype = document.getElementById('type');
+        if(ctype.textContent.trim() !== "user")
+        {
+            recs_tsena=recup_tsena;
+        }
         
         if (listeDebut) {
             const ctype = document.getElementById('type');

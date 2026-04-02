@@ -2313,24 +2313,33 @@ function traiterCommande(transcript) {
         if(ctype.textContent.trim() !== "user")
         {
             recs_tsena=recup_tsena;
-        }
-        
-        if (listeDebut) {
+            if (listeDebut) {
             const ctype = document.getElementById('type');
             if(ctype.textContent.trim() !== "user")
             {
                 selectionnerDebut(numero);
             }
             recup="1";
-        } else if (articlesFiltre.length > 0) {
-            if(fournisseurFiltre.length == 0){
-                selectionnerArticleParNumero(numero);
-            }else{
-                selectionnerFournisseurParNumero(numero);
+            } else if (articlesFiltre.length > 0) {
+                if(fournisseurFiltre.length == 0){
+                    selectionnerArticleParNumero(numero);
+                }else{
+                    selectionnerFournisseurParNumero(numero);
+                }
+            } else if (magasinsFiltre.length > 0) {
+                selectionnermagasin(numero);
+            } 
+        }else{
+            if (articlesFiltre.length > 0) {
+                if(fournisseurFiltre.length == 0){
+                    selectionnerArticleParNumero(numero);
+                }else{
+                    selectionnerFournisseurParNumero(numero);
+                }
             }
-        } else if (magasinsFiltre.length > 0) {
-            selectionnermagasin(numero);
-        } 
+        }
+        
+        
     }else if(cmd.includes("envoyer")){
         exporterTXT();
     }else if(cmd.includes("nouvelle")){

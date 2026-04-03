@@ -17,7 +17,10 @@
             <h1 class="titre-facture">
                 <span class="icon">🧾</span>  FACTURE vocale 🎤
             </h1>
-            <a href="{{ url_for('logout') }}" class="btn-logout">🚪 Déconnexion</a>
+            <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+                <button class="btn-add-article" onclick="ouvrirModalArticle()">➕ Ajouter article</button>
+                <a href="{{ url_for('logout') }}" class="btn-logout">🚪 Déconnexion</a>
+            </div>
         </div>
         <br>
         <div class="card">
@@ -108,8 +111,97 @@
             <label class="lblaffaire" style="color:white"></label>
             <label class="lblnum_fact" style="color:white"></label>
             <label class="lblfournisseur" style="color:white"></label>
+        </div>
+
+        <!-- ===================== MODAL AJOUT ARTICLE ===================== -->
+        <div id="modal-add-article" style="
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.55);
+            z-index: 99999;
+            justify-content: center;
+            align-items: center;
+        ">
+            <div style="
+                background: white;
+                border-radius: 12px;
+                padding: 30px;
+                width: 90%;
+                max-width: 480px;
+                box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+                position: relative;
+            ">
+                <button onclick="fermerModalArticle()" style="
+                    position: absolute;
+                    top: 12px; right: 14px;
+                    background: none;
+                    border: none;
+                    font-size: 1.4rem;
+                    cursor: pointer;
+                    color: #666;
+                    width: auto;
+                    padding: 0;
+                ">✕</button>
+
+                <h2 style="margin-top:0; color:#4f46e5; font-size:1.2rem;">➕ Ajouter un article</h2>
+
+                <label style="font-size:0.85rem; font-weight:bold; display:block; margin-bottom:5px;">
+                    Référence <span style="color:red">*</span>
+                </label>
+                <input type="text" id="input-reference"
+                    placeholder="Ex: ART001"
+                    style="
+                        width:100%; padding:10px;
+                        font-size:0.95rem;
+                        border:2px solid #e5e7eb;
+                        border-radius:6px;
+                        margin-bottom:14px;
+                        box-sizing:border-box;
+                        text-transform:uppercase;
+                    "
+                />
+
+                <label style="font-size:0.85rem; font-weight:bold; display:block; margin-bottom:5px;">
+                    Désignation <span style="color:red">*</span>
+                </label>
+                <input type="text" id="input-designation"
+                    placeholder="Ex: FARINE DE BLE 1KG"
+                    style="
+                        width:100%; padding:10px;
+                        font-size:0.95rem;
+                        border:2px solid #e5e7eb;
+                        border-radius:6px;
+                        margin-bottom:18px;
+                        box-sizing:border-box;
+                        text-transform:uppercase;
+                    "
+                />
+
+                <div id="msg-add-article" style="
+                    font-size:0.82rem;
+                    margin-bottom:12px;
+                    min-height:18px;
+                    font-weight:bold;
+                "></div>
+
+                <button id="btn-valider-article" onclick="validerAjoutArticle()" style="
+                    width:100%;
+                    padding:12px;
+                    background:#4f46e5;
+                    color:white;
+                    border:none;
+                    border-radius:6px;
+                    font-size:1rem;
+                    cursor:pointer;
+                ">
+                    ✅ Enregistrer
+                </button>
+            </div>
+        </div>
+        <!-- =============================================================== -->
 
             <script src="/static/app.js"></script>
     </body>
 </html>
-

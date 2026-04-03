@@ -2959,3 +2959,111 @@ function exporterTXT() {
 }
 
 
+// ===================== AJOUT ARTICLE (Modal) =====================
+
+function ouvrirModalArticle() {
+    const modal = document.getElementById('modal-add-article');
+    if (!modal) return;
+    // Réinitialiser les champs
+    document.getElementById('input-reference').value = '';
+    document.getElementById('input-designation').value = '';
+    const msg = document.getElementById('msg-add-article');
+    msg.innerText = '';
+    msg.style.color = '';
+    // Afficher le modal en flex
+    modal.style.display = 'flex';
+    // Focus sur la référence
+    setTimeout(() => document.getElementById('input-reference').focus(), 100);
+}
+
+function fermerModalArticle() {
+    const modal = document.getElementById('modal-add-article');
+    if (modal) modal.style.display = 'none';
+}
+
+// Fermer le modal en cliquant sur l'arrière-plan
+document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById('modal-add-article');
+    if (modal) {
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) fermerModalArticle();
+        });
+    }
+
+    // Mettre en majuscules automatiquement
+    const inputRef = document.getElementById('input-reference');
+    const inputDes = document.getElementById('input-designation');
+    if (inputRef) inputRef.addEventListener('input', () => {
+        const pos = inputRef.selectionStart;
+        inputRef.value = inputRef.value.toUpperCase();
+        inputRef.setSelectionRange(pos, pos);
+    });
+    if (inputDes) inputDes.addEventListener('input', () => {
+        const pos = inputDes.selectionStart;
+        inputDes.value = inputDes.value.toUpperCase();
+        inputDes.setSelectionRange(pos, pos);
+    });
+});
+
+async function validerAjoutArticle() {
+    const reference   = (document.getElementById('input-reference').value || '').trim().toUpperCase();
+    const designation = (document.getElementById('input-designation').value || '').trim().toUpperCase();
+    const msg         = document.getElementById('msg-add-article');
+    const btn         = document.getElementById('btn-valider-article');
+
+    // Validation côté client
+    if (!reference || !designation) {
+        msg.style.color = '#dc2626';
+        msg.innerText = '⚠️ Référence et désignation obligatoires.';
+        return;
+    }
+
+    // Désactiver le bouton pendant l'envoi
+    btn.disabled = true;
+    btn.innerText = '⏳ Enregistrement…';
+    msg.innerText = '';
+
+    try {
+        const response = await fetch('/add_article', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reference, designation })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            msg.style.color = '#059669';
+            msg.innerText = `✅ Article "${designation}" (${reference}) ajouté avec succès !`;
+
+            // Ajouter immédiatement au select en mémoire (sans rechargement)
+            const select = document.getElementById('articleSelect');
+            if (select) {
+                const option = document.createElement('option');
+                option.value = reference;
+                option.textContent = designation;
+                select.appendChild(option);
+            }
+
+            // Vider les champs
+            document.getElementById('input-reference').value = '';
+            document.getElementById('input-designation').value = '';
+
+            // Fermer le modal après 1.5s
+            setTimeout(() => fermerModalArticle(), 1500);
+
+        } else {
+            msg.style.color = '#dc2626';
+            msg.innerText = '❌ ' + (data.error || 'Erreur inconnue.');
+        }
+
+    } catch (err) {
+        console.error('Erreur fetch add_article:', err);
+        msg.style.color = '#dc2626';
+        msg.innerText = '❌ Erreur réseau : ' + err.message;
+    } finally {
+        btn.disabled = false;
+        btn.innerText = '✅ Enregistrer';
+    }
+}
+// =================================================================

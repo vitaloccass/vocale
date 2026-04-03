@@ -554,9 +554,9 @@ def get_code(designation):
         cursor = conn.cursor()
         cursor.execute(
             "SELECT reference FROM correspondance_article WHERE designation = ?",
-            (designation,)  # ✅ paramètre sécurisé (évite SQL injection)
+            (designation,)
         )
-        row = cursor.fetchone()  # ✅ fetchone() minuscule
+        row = cursor.fetchone()
 
         if row:
             return jsonify({"reference": row[0]})
@@ -567,7 +567,51 @@ def get_code(designation):
         return jsonify({"error": str(e)}), 500
 
     finally:
-        conn.close()  # ✅ toujours fermer la connexion
+        conn.close()
+
+
+# ============= AJOUT ARTICLE =============
+
+@app.route('/add_article', methods=['POST'])
+@login_required
+def add_article():
+    """Ajouter un nouvel article (référence + désignation) dans correspondance_article"""
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "Données JSON manquantes"}), 400
+
+    reference  = (data.get("reference", "") or "").strip().upper()
+    designation = (data.get("designation", "") or "").strip().upper()
+
+    if not reference or not designation:
+        return jsonify({"error": "Référence et désignation obligatoires"}), 400
+
+    conn = connecter_sqlite()
+    try:
+        # Vérifier si la référence existe déjà
+        existing = conn.execute(
+            "SELECT reference FROM correspondance_article WHERE reference = ?",
+            (reference,)
+        ).fetchone()
+
+        if existing:
+            return jsonify({"error": f"La référence '{reference}' existe déjà"}), 409
+
+        conn.execute(
+            "INSERT INTO correspondance_article (reference, designation) VALUES (?, ?)",
+            (reference, designation)
+        )
+        conn.commit()
+        print(f"✅ Article ajouté : {reference} - {designation}")
+        return jsonify({"success": True, "reference": reference, "designation": designation}), 201
+
+    except Exception as e:
+        print(f"❌ Erreur ajout article : {str(e)}")
+        return jsonify({"error": str(e)}), 500
+
+    finally:
+        conn.close()
+
 
 # ============= INITIALISATION DB =============
 
@@ -592,6 +636,15 @@ def init_db():
                 token TEXT NOT NULL UNIQUE,
                 expires_at DATETIME NOT NULL,
                 FOREIGN KEY(user_id) REFERENCES users(id)
+            )
+        """)
+
+        # S'assurer que la table correspondance_article existe
+        db.execute("""
+            CREATE TABLE IF NOT EXISTS correspondance_article (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                reference TEXT UNIQUE NOT NULL,
+                designation TEXT NOT NULL
             )
         """)
 

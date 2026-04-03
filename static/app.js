@@ -2976,6 +2976,7 @@ function ouvrirModalArticle() {
     setTimeout(() => document.getElementById('input-reference').focus(), 100);
 }
 
+
 function fermerModalArticle() {
     const modal = document.getElementById('modal-add-article');
     if (modal) modal.style.display = 'none';
@@ -3003,6 +3004,35 @@ document.addEventListener('DOMContentLoaded', () => {
         inputDes.value = inputDes.value.toUpperCase();
         inputDes.setSelectionRange(pos, pos);
     });
+
+    // ── Modal Modifier article : fermer en cliquant sur l'arrière-plan ──
+    const modalEdit = document.getElementById('modal-edit-article');
+    if (modalEdit) {
+        modalEdit.addEventListener('click', (e) => {
+            if (e.target === modalEdit) fermerModalModifierArticle();
+        });
+    }
+
+    // ── Majuscules automatiques sur les champs du modal modifier ──
+    const editSearch = document.getElementById('edit-search-input');
+    const editRef    = document.getElementById('edit-nouvelle-reference');
+    const editDes    = document.getElementById('edit-nouvelle-designation');
+
+    [editSearch, editRef, editDes].forEach(input => {
+        if (!input) return;
+        input.addEventListener('input', () => {
+            const pos = input.selectionStart;
+            input.value = input.value.toUpperCase();
+            input.setSelectionRange(pos, pos);
+        });
+    });
+
+    // ── Lancer recherche avec touche Entrée dans le champ recherche ──
+    if (editSearch) {
+        editSearch.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') rechercherArticleAModifier();
+        });
+    }
 });
 
 async function validerAjoutArticle() {
@@ -3067,3 +3097,232 @@ async function validerAjoutArticle() {
     }
 }
 // =================================================================
+
+
+// ===================== MODIFIER ARTICLE (Modal) =====================
+
+function ouvrirModalModifierArticle() {
+    const modal = document.getElementById('modal-edit-article');
+    if (!modal) return;
+
+    // Réinitialiser l'état
+    document.getElementById('edit-search-input').value = '';
+    document.getElementById('edit-search-results').innerHTML = '';
+    document.getElementById('edit-search-results').style.display = 'none';
+    document.getElementById('msg-edit-search').innerText = '';
+    document.getElementById('edit-step-search').style.display = 'block';
+    document.getElementById('edit-step-form').style.display = 'none';
+
+    modal.style.display = 'flex';
+    setTimeout(() => document.getElementById('edit-search-input').focus(), 100);
+}
+
+function fermerModalModifierArticle() {
+    const modal = document.getElementById('modal-edit-article');
+    if (modal) modal.style.display = 'none';
+}
+
+function retourRechercheEdit() {
+    document.getElementById('edit-step-form').style.display = 'none';
+    document.getElementById('edit-step-search').style.display = 'block';
+    document.getElementById('msg-edit-article').innerText = '';
+    setTimeout(() => document.getElementById('edit-search-input').focus(), 100);
+}
+
+async function rechercherArticleAModifier() {
+    const q = (document.getElementById('edit-search-input').value || '').trim();
+    const msgSearch = document.getElementById('msg-edit-search');
+    const resultsDiv = document.getElementById('edit-search-results');
+
+    if (!q) {
+        msgSearch.style.color = '#dc2626';
+        msgSearch.innerText = '⚠️ Saisissez un mot-clé pour chercher.';
+        return;
+    }
+
+    msgSearch.style.color = '#6b7280';
+    msgSearch.innerText = '⏳ Recherche en cours…';
+    resultsDiv.style.display = 'none';
+    resultsDiv.innerHTML = '';
+
+    try {
+        const response = await fetch(`/search_article?q=${encodeURIComponent(q)}`);
+        const data = await response.json();
+
+        if (!response.ok) {
+            msgSearch.style.color = '#dc2626';
+            msgSearch.innerText = '❌ ' + (data.error || 'Erreur serveur.');
+            return;
+        }
+
+        const articles = data.articles || [];
+
+        if (articles.length === 0) {
+            msgSearch.style.color = '#f59e0b';
+            msgSearch.innerText = `⚠️ Aucun article trouvé pour "${q}".`;
+            return;
+        }
+
+        msgSearch.style.color = '#059669';
+        msgSearch.innerText = `${articles.length} article(s) trouvé(s). Cliquez pour sélectionner.`;
+
+        resultsDiv.style.display = 'block';
+        resultsDiv.innerHTML = '';
+
+        articles.forEach(article => {
+            const item = document.createElement('div');
+            item.style.cssText = `
+                padding: 10px 14px;
+                cursor: pointer;
+                border-bottom: 1px solid #f3f4f6;
+                font-size: 0.88rem;
+                transition: background 0.15s;
+            `;
+            item.innerHTML = `<strong>${article.reference}</strong> — ${article.designation}`;
+
+            item.addEventListener('mouseenter', () => { item.style.background = '#fef3c7'; });
+            item.addEventListener('mouseleave', () => { item.style.background = 'white'; });
+
+            item.addEventListener('click', () => {
+                // Remplir le formulaire de modification
+                document.getElementById('edit-reference-originale').value  = article.reference;
+                document.getElementById('edit-nouvelle-reference').value   = article.reference;
+                document.getElementById('edit-nouvelle-designation').value = article.designation;
+                document.getElementById('edit-article-selectionne').innerText =
+                    `${article.reference} — ${article.designation}`;
+                document.getElementById('msg-edit-article').innerText = '';
+
+                // Passer à l'étape formulaire
+                document.getElementById('edit-step-search').style.display = 'none';
+                document.getElementById('edit-step-form').style.display   = 'block';
+                setTimeout(() => document.getElementById('edit-nouvelle-reference').focus(), 100);
+            });
+
+            resultsDiv.appendChild(item);
+        });
+
+    } catch (err) {
+        console.error('Erreur recherche article:', err);
+        msgSearch.style.color = '#dc2626';
+        msgSearch.innerText = '❌ Erreur réseau : ' + err.message;
+    }
+}
+
+async function validerModificationArticle() {
+    const referenceOriginale  = (document.getElementById('edit-reference-originale').value  || '').trim().toUpperCase();
+    const nouvelleReference   = (document.getElementById('edit-nouvelle-reference').value   || '').trim().toUpperCase();
+    const nouvelleDesignation = (document.getElementById('edit-nouvelle-designation').value || '').trim().toUpperCase();
+    const msg = document.getElementById('msg-edit-article');
+    const btn = document.getElementById('btn-valider-edit');
+
+    if (!nouvelleReference || !nouvelleDesignation) {
+        msg.style.color = '#dc2626';
+        msg.innerText = '⚠️ Référence et désignation obligatoires.';
+        return;
+    }
+
+    btn.disabled = true;
+    btn.innerText = '⏳ Enregistrement…';
+    msg.innerText = '';
+
+    try {
+        const response = await fetch('/edit_article', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                reference_originale:  referenceOriginale,
+                nouvelle_reference:   nouvelleReference,
+                nouvelle_designation: nouvelleDesignation
+            })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            msg.style.color = '#059669';
+            msg.innerText = `✅ Article modifié : ${data.reference} — ${data.designation}`;
+
+            // Mettre à jour le select en mémoire si l'option existe
+            const select = document.getElementById('articleSelect');
+            if (select) {
+                const option = Array.from(select.options).find(o => o.value === referenceOriginale);
+                if (option) {
+                    option.value       = data.reference;
+                    option.textContent = data.designation;
+                }
+            }
+
+            // Fermer le modal après 1.5s
+            setTimeout(() => fermerModalModifierArticle(), 1500);
+
+        } else {
+            msg.style.color = '#dc2626';
+            msg.innerText = '❌ ' + (data.error || 'Erreur inconnue.');
+        }
+
+    } catch (err) {
+        console.error('Erreur modification article:', err);
+        msg.style.color = '#dc2626';
+        msg.innerText = '❌ Erreur réseau : ' + err.message;
+    } finally {
+        btn.disabled = false;
+        btn.innerText = '✅ Enregistrer la modification';
+    }
+}
+
+async function validerSuppressionArticle() {
+    const reference = (document.getElementById('edit-reference-originale').value || '').trim().toUpperCase();
+    const msg = document.getElementById('msg-edit-article');
+    const btn = document.getElementById('btn-supprimer-edit');
+
+    if (!reference) {
+        msg.style.color = '#dc2626';
+        msg.innerText = '⚠️ Aucun article sélectionné.';
+        return;
+    }
+
+    // Confirmation avant suppression
+    if (!confirm(`Supprimer définitivement l'article "${reference}" ?`)) return;
+
+    btn.disabled = true;
+    btn.innerText = '⏳ Suppression…';
+    msg.innerText = '';
+
+    try {
+        const response = await fetch('/delete_article', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ reference })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success) {
+            msg.style.color = '#059669';
+            msg.innerText = `✅ Article "${data.reference}" supprimé.`;
+
+            // Supprimer du select en mémoire
+            const select = document.getElementById('articleSelect');
+            if (select) {
+                const option = Array.from(select.options).find(o => o.value === data.reference);
+                if (option) option.remove();
+            }
+
+            // Fermer le modal après 1.5s
+            setTimeout(() => fermerModalModifierArticle(), 1500);
+
+        } else {
+            msg.style.color = '#dc2626';
+            msg.innerText = '❌ ' + (data.error || 'Erreur inconnue.');
+        }
+
+    } catch (err) {
+        console.error('Erreur suppression article:', err);
+        msg.style.color = '#dc2626';
+        msg.innerText = '❌ Erreur réseau : ' + err.message;
+    } finally {
+        btn.disabled = false;
+        btn.innerText = '🗑️ Supprimer';
+    }
+}
+// ====================================================================

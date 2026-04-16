@@ -2848,7 +2848,7 @@ function exporterTXT() {
             let prixNum = toNumber(prix);
             let code_fournisseur = tds[4] ? tds[4].innerHTML : "";
             if (fournisseursSpeciaux.includes(code_fournisseur)) {
-                pu = prixNum;
+                pu = prixNum * 1.2;
             } else {
                 pu = prixNum;
             }
@@ -2857,7 +2857,7 @@ function exporterTXT() {
             let depot    = rec_depot;
             let affaire  = rec_affaire;
 
-            let mtt = (Number(qte) * (Number(pu)-(Number(pu) * (Number(remise) / 100))))* 1.2;
+            let mtt = (Number(qte) * (Number(pu)-(Number(pu) * (Number(remise) / 100))));
 
             if (recs.toLowerCase().includes("vente")) {
                 lines.push(`1\t6\t${numFact}\t${dateFact}\t${tsena}\t${nomClient}\t${ref}\t${article}\t${pu}\t${qte}\t${remise}\t${depot}\t${affaire}\t${rec_souche}`);

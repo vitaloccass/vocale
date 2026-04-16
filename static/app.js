@@ -2769,7 +2769,8 @@ function init(){
     });
 }
 
-function calculerTTC() {
+function calculerTTC(){
+    let trs = document.querySelectorAll("#table-body tr");
     const lignes = document.querySelectorAll('#table-body .ligne');
     let totalGeneral = 0;
 
@@ -2786,6 +2787,21 @@ function calculerTTC() {
         }
         totalGeneral += isNaN(ttc) ? 0 : ttc;
     });
+    
+    if (!trs.length) return;
+
+    let targetRow = null;
+
+
+    // si aucune ligne vide trouvée → prendre la dernière
+    if (!targetRow) {
+        targetRow = trs[trs.length - 1];
+    }
+
+    trs.forEach(tr => {
+        function calculerTTC() {
+
+    
 
     // Mise à jour du total général
     const totalCell = document.getElementById('total-ttc');
@@ -2795,6 +2811,31 @@ function calculerTTC() {
             maximumFractionDigits: 2
         });
     }
+}
+        let tds = tr.querySelectorAll("td");
+
+        //if (tds[4].innerText.trim() !== "") { // Si Réf article non vide
+            let qte = tds[8].innerText.trim();
+            let pu = tds[9].innerText.trim();
+            let remise = tds[10].innerText.trim();
+            let code_fournisseur = targetRow.children[4].innerText.trim();
+
+            let mtt = 0;
+
+            const fournisseursSpeciaux = [
+                'LOCA001','LOCB001','LOCJ003','LOCP001','LOCP016','LOCU001'
+            ];
+
+            alert(code_fournisseur);
+            if (fournisseursSpeciaux.includes(code_fournisseur)) {
+                mtt = (Number(qte) * ((Number(pu)-(Number(pu) * (Number(remise) / 100))))) * 1.2;
+            } else {
+                mtt = Number(qte) * (Number(pu)-(Number(pu) * (Number(remise) / 100)));
+            }
+
+            tds[11].innerText = mtt.toFixed(2);
+        //}
+    });
 }
 
 function clean(str) {
@@ -2848,7 +2889,7 @@ function exporterTXT() {
             let prixNum = toNumber(prix);
             let code_fournisseur = tds[4] ? tds[4].innerHTML : "";
             if (fournisseursSpeciaux.includes(code_fournisseur)) {
-                pu = prixNum * 1.2;
+                pu = prixNum;
             } else {
                 pu = prixNum;
             }
@@ -2857,7 +2898,7 @@ function exporterTXT() {
             let depot    = rec_depot;
             let affaire  = rec_affaire;
 
-            let mtt = (Number(qte) * (Number(pu)-(Number(pu) * (Number(remise) / 100))));
+            let mtt = (Number(qte) * (Number(pu)-(Number(pu) * (Number(remise) / 100))))* 1.2;
 
             if (recs.toLowerCase().includes("vente")) {
                 lines.push(`1\t6\t${numFact}\t${dateFact}\t${tsena}\t${nomClient}\t${ref}\t${article}\t${pu}\t${qte}\t${remise}\t${depot}\t${affaire}\t${rec_souche}`);

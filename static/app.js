@@ -2769,39 +2769,37 @@ function init(){
     });
 }
 
-function calculerTTC(){
-    let trs = document.querySelectorAll("#table-body tr");
+function calculerTTC() {
     const lignes = document.querySelectorAll('#table-body .ligne');
     let totalGeneral = 0;
 
     lignes.forEach(ligne => {
         const cellules = ligne.querySelectorAll('td');
-        const qte = parseFloat(cellules[8]?.innerText?.replace(',', '.')) || 0;
-        const pu  = parseFloat(cellules[9]?.innerText?.replace(',', '.')) || 0;
-        const remise = parseFloat(cellules[10]?.innerText?.replace(',', '.')) || 0;
 
-        const ttc = qte * pu * (1 - remise / 100);
-        const cellTTC = cellules[11];
-        if (cellTTC) {
-            cellTTC.innerText = isNaN(ttc) ? '' : ttc.toFixed(2);
+        const qte = parseFloat(cellules[8]?.innerText.replace(',', '.')) || 0;
+        const pu  = parseFloat(cellules[9]?.innerText.replace(',', '.')) || 0;
+        const remise = parseFloat(cellules[10]?.innerText.replace(',', '.')) || 0;
+
+        const code_fournisseur = cellules[4]?.innerText.trim();
+
+        const fournisseursSpeciaux = [
+            'LOCA001','LOCB001','LOCJ003','LOCP001','LOCP016','LOCU001'
+        ];
+
+        let ttc = qte * pu * (1 - remise / 100);
+
+        // Si fournisseur spécial → TVA 20%
+        if (fournisseursSpeciaux.includes(code_fournisseur)) {
+            ttc = ttc * 1.2;
         }
+
+        // Mise à jour cellule TTC
+        if (cellules[11]) {
+            cellules[11].innerText = isNaN(ttc) ? '' : ttc.toFixed(2);
+        }
+
         totalGeneral += isNaN(ttc) ? 0 : ttc;
     });
-    
-    if (!trs.length) return;
-
-    let targetRow = null;
-
-
-    // si aucune ligne vide trouvée → prendre la dernière
-    if (!targetRow) {
-        targetRow = trs[trs.length - 1];
-    }
-
-    trs.forEach(tr => {
-        function calculerTTC() {
-
-    
 
     // Mise à jour du total général
     const totalCell = document.getElementById('total-ttc');
@@ -2811,31 +2809,6 @@ function calculerTTC(){
             maximumFractionDigits: 2
         });
     }
-}
-        let tds = tr.querySelectorAll("td");
-
-        //if (tds[4].innerText.trim() !== "") { // Si Réf article non vide
-            let qte = tds[8].innerText.trim();
-            let pu = tds[9].innerText.trim();
-            let remise = tds[10].innerText.trim();
-            let code_fournisseur = targetRow.children[4].innerText.trim();
-
-            let mtt = 0;
-
-            const fournisseursSpeciaux = [
-                'LOCA001','LOCB001','LOCJ003','LOCP001','LOCP016','LOCU001'
-            ];
-
-            alert(code_fournisseur);
-            if (fournisseursSpeciaux.includes(code_fournisseur)) {
-                mtt = (Number(qte) * ((Number(pu)-(Number(pu) * (Number(remise) / 100))))) * 1.2;
-            } else {
-                mtt = Number(qte) * (Number(pu)-(Number(pu) * (Number(remise) / 100)));
-            }
-
-            tds[11].innerText = mtt.toFixed(2);
-        //}
-    });
 }
 
 function clean(str) {

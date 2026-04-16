@@ -2769,42 +2769,32 @@ function init(){
     });
 }
 
-function calculerTTC(){
-    let trs = document.querySelectorAll("#table-body tr");
-    if (!trs.length) return;
+function calculerTTC() {
+    const lignes = document.querySelectorAll('#table-body .ligne');
+    let totalGeneral = 0;
 
-    let targetRow = null;
+    lignes.forEach(ligne => {
+        const cellules = ligne.querySelectorAll('td');
+        const qte = parseFloat(cellules[8]?.innerText?.replace(',', '.')) || 0;
+        const pu  = parseFloat(cellules[9]?.innerText?.replace(',', '.')) || 0;
+        const remise = parseFloat(cellules[10]?.innerText?.replace(',', '.')) || 0;
 
-
-    // si aucune ligne vide trouvée → prendre la dernière
-    if (!targetRow) {
-        targetRow = trs[trs.length - 1];
-    }
-
-    trs.forEach(tr => {
-        let tds = tr.querySelectorAll("td");
-
-        //if (tds[4].innerText.trim() !== "") { // Si Réf article non vide
-            let qte = tds[8].innerText.trim();
-            let pu = tds[9].innerText.trim();
-            let remise = tds[10].innerText.trim();
-            let code_fournisseur = targetRow.children[4].innerText.trim();
-
-            let mtt = 0;
-
-            const fournisseursSpeciaux = [
-                'LOCA001','LOCB001','LOCJ003','LOCP001','LOCP016','LOCU001'
-            ];
-
-            if (fournisseursSpeciaux.includes(code_fournisseur)) {
-                mtt = (Number(qte) * ((Number(pu)-(Number(pu) * (Number(remise) / 100))))) * 1.2;
-            } else {
-                mtt = Number(qte) * (Number(pu)-(Number(pu) * (Number(remise) / 100)));
-            }
-
-            tds[11].innerText = mtt.toFixed(2);
-        //}
+        const ttc = qte * pu * (1 - remise / 100);
+        const cellTTC = cellules[11];
+        if (cellTTC) {
+            cellTTC.innerText = isNaN(ttc) ? '' : ttc.toFixed(2);
+        }
+        totalGeneral += isNaN(ttc) ? 0 : ttc;
     });
+
+    // Mise à jour du total général
+    const totalCell = document.getElementById('total-ttc');
+    if (totalCell) {
+        totalCell.innerText = totalGeneral.toLocaleString('fr-FR', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+    }
 }
 
 function clean(str) {

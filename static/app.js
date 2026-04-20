@@ -2772,6 +2772,7 @@ function ajouterLigne() {
         if (i == 8 || i == 9 || i == 10) {
             td.addEventListener("input", calculerTTC);
             td.contentEditable = "true";
+            td.style.textAlign = "center";
         }
 
         // ------------------------

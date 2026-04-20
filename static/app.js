@@ -1178,6 +1178,9 @@ function afficherFournisseurFiltre(fournisseur) {
                 const puBrut = parseFloat(targetRow.children[9].innerText); // valeur numérique du PU
                 const remiseVal = parseFloat(targetRow.children[10].innerText); // valeur numérique de la remise
 
+                alert(tdpu);
+                alert(puBrut);
+                alert(remiseVal);
                 const puCalcule = puBrut - ((puBrut * remiseVal) / 100); // calcul du prix remisé
                 console.log("PU calculé :", puCalcule);
                 tdpu.innerText = puCalcule;

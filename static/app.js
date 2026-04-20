@@ -500,13 +500,13 @@ function afficherListeFiltre(articles) {
                 console.log("Qte reçu :", quantite);
                 tdqte.innerText = quantite;
 
-                const tdpu = targetRow.children[9]; // colonne pu article
-                console.log("PU reçu :", pu);
-                tdpu.innerText = pu;
-
                 const tdremise = targetRow.children[10]; // colonne remise article
                 console.log("Remise reçu :", remise);
                 tdremise.innerText = remise;
+
+                const tdpu = targetRow.children[9] - ((targetRow.children[9] * targetRow.children[10])/100); // colonne pu article
+                console.log("PU reçu :", pu);
+                tdpu.innerText = pu;
 
                 calculerTTC();
 
@@ -725,13 +725,13 @@ function selectionnerArticleParNumero(numero) {
             console.log("Qte reçu :", quantite);
             tdqte.innerText = quantite;
 
-            const tdpu = targetRow.children[9]; // colonne pu article
-            console.log("PU reçu :", pu);
-            tdpu.innerText = pu;
-
             const tdremise = targetRow.children[10]; // colonne remise article
             console.log("Remise reçu :", remise);
             tdremise.innerText = remise;
+
+            const tdpu = targetRow.children[9] - ((targetRow.children[9] * targetRow.children[10])/100); // colonne pu article
+            console.log("PU reçu :", pu);
+            tdpu.innerText = pu;
 
             calculerTTC();
 
@@ -921,13 +921,13 @@ function selectionnerFournisseurParNumero(numero) {
         console.log("Qte reçu :", quantite);
         tdqte.innerText = quantite;
 
-        const tdpu = targetRow.children[9]; // colonne pu article
-        console.log("PU reçu :", pu);
-        tdpu.innerText = pu;
-
         const tdremise = targetRow.children[10]; // colonne remise article
         console.log("Remise reçu :", remise);
         tdremise.innerText = remise;
+
+        const tdpu = targetRow.children[9] - ((targetRow.children[9] * targetRow.children[10])/100); // colonne pu article
+        console.log("PU reçu :", pu);
+        tdpu.innerText = pu;
 
         calculerTTC();
 
@@ -1156,13 +1156,14 @@ function afficherFournisseurFiltre(fournisseur) {
                 console.log("Qte reçu :", quantite);
                 tdqte.innerText = quantite;
 
-                const tdpu = targetRow.children[9]; // colonne pu article
-                console.log("PU reçu :", pu);
-                tdpu.innerText = pu;
-
                 const tdremise = targetRow.children[10]; // colonne remise article
                 console.log("Remise reçu :", remise);
                 tdremise.innerText = remise;
+
+                const tdpu = targetRow.children[9] - ((targetRow.children[9] * targetRow.children[10])/100); // colonne pu article
+                console.log("PU reçu :", pu);
+                tdpu.innerText = pu;
+
 
                 calculerTTC();
 

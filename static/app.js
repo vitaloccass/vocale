@@ -2769,7 +2769,7 @@ function ajouterLigne() {
         // Colonnes 7, 8, 9 : recalcul automatique du TTC
         // (Qté, PU, Remise)
         // ------------------------
-        if (i == 8 || i == 9 || i == 10) {
+        if (i == 8 || i == 9 || i == 10 || i==11) {
             td.addEventListener("input", calculerTTC);
             td.contentEditable = "true";
             td.style.textAlign = "center";
@@ -2780,7 +2780,6 @@ function ajouterLigne() {
         // ------------------------
         if (td.contentEditable !== "false") {
             td.contentEditable = "true";
-            td.style.textAlign = "center";
         }
 
         newRow.appendChild(td);

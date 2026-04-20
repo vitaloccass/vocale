@@ -505,12 +505,15 @@ function afficherListeFiltre(articles) {
                 tdremise.innerText = remise;
 
                 const tdpu = targetRow.children[9]; // la cellule DOM
+                tdpu.innerText = pu;
+
                 const puBrut = parseFloat(targetRow.children[9].innerText); // valeur numérique du PU
                 const remiseVal = parseFloat(targetRow.children[10].innerText); // valeur numérique de la remise
 
                 const puCalcule = puBrut - ((puBrut * remiseVal) / 100); // calcul du prix remisé
                 console.log("PU calculé :", puCalcule);
                 tdpu.innerText = puCalcule;
+
 
                 calculerTTC();
 
@@ -734,12 +737,15 @@ function selectionnerArticleParNumero(numero) {
             tdremise.innerText = remise;
 
             const tdpu = targetRow.children[9]; // la cellule DOM
+            tdpu.innerText = pu;
+
             const puBrut = parseFloat(targetRow.children[9].innerText); // valeur numérique du PU
             const remiseVal = parseFloat(targetRow.children[10].innerText); // valeur numérique de la remise
 
             const puCalcule = puBrut - ((puBrut * remiseVal) / 100); // calcul du prix remisé
             console.log("PU calculé :", puCalcule);
             tdpu.innerText = puCalcule;
+
 
 
             calculerTTC();
@@ -935,12 +941,15 @@ function selectionnerFournisseurParNumero(numero) {
         tdremise.innerText = remise;
 
         const tdpu = targetRow.children[9]; // la cellule DOM
+        tdpu.innerText = pu;
+
         const puBrut = parseFloat(targetRow.children[9].innerText); // valeur numérique du PU
         const remiseVal = parseFloat(targetRow.children[10].innerText); // valeur numérique de la remise
 
         const puCalcule = puBrut - ((puBrut * remiseVal) / 100); // calcul du prix remisé
         console.log("PU calculé :", puCalcule);
         tdpu.innerText = puCalcule;
+
 
 
         calculerTTC();
@@ -1180,7 +1189,6 @@ function afficherFournisseurFiltre(fournisseur) {
                 const puBrut = parseFloat(targetRow.children[9].innerText); // valeur numérique du PU
                 const remiseVal = parseFloat(targetRow.children[10].innerText); // valeur numérique de la remise
 
-                alert(puBrut);
                 const puCalcule = puBrut - ((puBrut * remiseVal) / 100); // calcul du prix remisé
                 console.log("PU calculé :", puCalcule);
                 tdpu.innerText = puCalcule;
@@ -2404,6 +2412,11 @@ function reinitialiser(){
         if ([12,13,14].includes(i)) td.style.visibility = "hidden";
 
         nouvelleLigne.appendChild(td);
+    }
+
+    const totalCell = document.getElementById('total-ttc');
+    if (totalCell) {
+        totalCell.innerText = '0,00';
     }
 
     tableBody.appendChild(nouvelleLigne);

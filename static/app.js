@@ -2780,6 +2780,7 @@ function ajouterLigne() {
         // ------------------------
         if (td.contentEditable !== "false") {
             td.contentEditable = "true";
+            td.style.textAlign = "center";
         }
 
         newRow.appendChild(td);

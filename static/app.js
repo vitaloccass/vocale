@@ -2910,11 +2910,11 @@ function exporterTXT() {
             let mtt = (Number(qte) * (Number(pu)-(Number(pu) * (Number(remise) / 100))))* 1.2;
 
             if (recs.toLowerCase().includes("vente")) {
-                lines.push(`1\t6\t${numFact}\t${dateFact}\t${tsena}\t${nomClient}\t${ref}\t${article}\t${pu}\t${qte}\t${remise}\t${depot}\t${affaire}\t${rec_souche}`);
+                lines.push(`1\t6\t${numFact}\t${dateFact}\t${tsena}\t${nomClient}\t1\t${ref}\t${article}\t${pu}\t${qte}\t${remise}\t${depot}\t${affaire}\t${rec_souche}`);
             } else if (recs.toLowerCase().includes("bc")) {
-                lines.push(`1\t12\t${numFact}\t${dateFact}\t${code_fournisseur}\t${nomClient}\t${ref}\t${article}\t${pu}\t${qte}\t${remise}\t${depot}\t${affaire}\t${rec_souche}`);
+                lines.push(`1\t12\t${numFact}\t${dateFact}\t${code_fournisseur}\t${nomClient}\t1\t${ref}\t${article}\t${pu}\t${qte}\t${remise}\t${depot}\t${affaire}\t${rec_souche}`);
             } else {
-                lines.push(`1\t16\t${numFact}\t${dateFact}\t${code_fournisseur}\t${nomClient}\t${ref}\t${article}\t${pu}\t${qte}\t${remise}\t${depot}\t${affaire}\t${rec_souche}`);
+                lines.push(`1\t16\t${numFact}\t${dateFact}\t${code_fournisseur}\t${nomClient}\t1\t${ref}\t${article}\t${pu}\t${qte}\t${remise}\t${depot}\t${affaire}\t${rec_souche}`);
             }
         }
     });

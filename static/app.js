@@ -508,7 +508,7 @@ function afficherListeFiltre(articles) {
                 'LOCA001','LOCB001','LOCJ003','LOCP001','LOCP016','LOCU001'
                 ];
 
-                let code_fournisseur = targetRow.children[4];
+                let code_fournisseur = targetRow.children[4].innerText.trim(); 
 
                 let tdpu =null;
                 if (fournisseursSpeciaux.includes(code_fournisseur)) {
@@ -752,7 +752,7 @@ function selectionnerArticleParNumero(numero) {
             'LOCA001','LOCB001','LOCJ003','LOCP001','LOCP016','LOCU001'
             ];
 
-            let code_fournisseur = targetRow.children[4];
+            let code_fournisseur = targetRow.children[4].innerText.trim(); 
 
             let tdpu =null;
             if (fournisseursSpeciaux.includes(code_fournisseur)) {
@@ -968,7 +968,7 @@ function selectionnerFournisseurParNumero(numero) {
         'LOCA001','LOCB001','LOCJ003','LOCP001','LOCP016','LOCU001'
         ];
 
-        let code_fournisseur = targetRow.children[4];
+        let code_fournisseur = targetRow.children[4].innerText.trim(); 
 
         let tdpu =null;
         if (fournisseursSpeciaux.includes(code_fournisseur)) {
@@ -1223,7 +1223,7 @@ function afficherFournisseurFiltre(fournisseur) {
                 'LOCA001','LOCB001','LOCJ003','LOCP001','LOCP016','LOCU001'
                 ];
 
-                let code_fournisseur = targetRow.children[4];
+                let code_fournisseur = targetRow.children[4].innerText.trim(); 
 
                 let tdpu =null;
                 if (fournisseursSpeciaux.includes(code_fournisseur)) {
@@ -2940,7 +2940,7 @@ function exporterTXT() {
             }
 
             let prixNum = toNumber(prix);
-            let code_fournisseur = targetRow.children[4];
+            let code_fournisseur = targetRow.children[4].innerText.trim(); 
             if (fournisseursSpeciaux.includes(code_fournisseur)) {
                 pu = prixNum-(Number(prixNum) * (Number(remise) / 100)) * 1.2;
             } else {

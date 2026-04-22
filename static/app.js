@@ -508,7 +508,7 @@ function afficherListeFiltre(articles) {
                 'LOCA001','LOCB001','LOCJ003','LOCP001','LOCP016','LOCU001'
                 ];
 
-                let code_fournisseur = tds[4] ? tds[4].innerHTML : "";
+                let code_fournisseur = targetRow.children[4];
 
                 if (fournisseursSpeciaux.includes(code_fournisseur)) {
                     const tdpu = targetRow.children[9]; // la cellule DOM
@@ -751,7 +751,7 @@ function selectionnerArticleParNumero(numero) {
             'LOCA001','LOCB001','LOCJ003','LOCP001','LOCP016','LOCU001'
             ];
 
-            let code_fournisseur = tds[4] ? tds[4].innerHTML : "";
+            let code_fournisseur = targetRow.children[4];
 
             if (fournisseursSpeciaux.includes(code_fournisseur)) {
                 const tdpu = targetRow.children[9]; // la cellule DOM
@@ -966,7 +966,7 @@ function selectionnerFournisseurParNumero(numero) {
         'LOCA001','LOCB001','LOCJ003','LOCP001','LOCP016','LOCU001'
         ];
 
-        let code_fournisseur = tds[4] ? tds[4].innerHTML : "";
+        let code_fournisseur = targetRow.children[4];
 
         if (fournisseursSpeciaux.includes(code_fournisseur)) {
             const tdpu = targetRow.children[9]; // la cellule DOM
@@ -1220,7 +1220,7 @@ function afficherFournisseurFiltre(fournisseur) {
                 'LOCA001','LOCB001','LOCJ003','LOCP001','LOCP016','LOCU001'
                 ];
 
-                let code_fournisseur = tds[4] ? tds[4].innerHTML : "";
+                let code_fournisseur = targetRow.children[4];
 
                 if (fournisseursSpeciaux.includes(code_fournisseur)) {
                     const tdpu = targetRow.children[9]; // la cellule DOM
@@ -2936,7 +2936,7 @@ function exporterTXT() {
             }
 
             let prixNum = toNumber(prix);
-            let code_fournisseur = tds[4] ? tds[4].innerHTML : "";
+            let code_fournisseur = targetRow.children[4];
             if (fournisseursSpeciaux.includes(code_fournisseur)) {
                 pu = prixNum-(Number(prixNum) * (Number(remise) / 100)) * 1.2;
             } else {

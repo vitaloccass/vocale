@@ -510,7 +510,7 @@ function afficherListeFiltre(articles) {
 
                 let code_fournisseur = targetRow.children[4];
 
-                const tdpu =null;
+                let tdpu =null;
                 if (fournisseursSpeciaux.includes(code_fournisseur)) {
                     tdpu = targetRow.children[9]; // la cellule DOM
                     tdpu.innerText = pu * 1.2;
@@ -754,7 +754,7 @@ function selectionnerArticleParNumero(numero) {
 
             let code_fournisseur = targetRow.children[4];
 
-            const tdpu =null;
+            let tdpu =null;
             if (fournisseursSpeciaux.includes(code_fournisseur)) {
                 tdpu = targetRow.children[9]; // la cellule DOM
                 tdpu.innerText = pu * 1.2;
@@ -970,7 +970,7 @@ function selectionnerFournisseurParNumero(numero) {
 
         let code_fournisseur = targetRow.children[4];
 
-        const tdpu =null;
+        let tdpu =null;
         if (fournisseursSpeciaux.includes(code_fournisseur)) {
             tdpu = targetRow.children[9]; // la cellule DOM
             tdpu.innerText = pu * 1.2;
@@ -1225,7 +1225,7 @@ function afficherFournisseurFiltre(fournisseur) {
 
                 let code_fournisseur = targetRow.children[4];
 
-                const tdpu =null;
+                let tdpu =null;
                 if (fournisseursSpeciaux.includes(code_fournisseur)) {
                     tdpu = targetRow.children[9]; // la cellule DOM
                     tdpu.innerText = pu * 1.2;

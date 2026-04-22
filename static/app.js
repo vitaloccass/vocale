@@ -2940,7 +2940,8 @@ function exporterTXT() {
             }
 
             let prixNum = toNumber(prix);
-            let code_fournisseur = targetRow.children[4].innerText.trim(); 
+            let code_fournisseur = tds[4].innerText.trim(); 
+            
             if (fournisseursSpeciaux.includes(code_fournisseur)) {
                 pu = prixNum-(Number(prixNum) * (Number(remise) / 100)) * 1.2;
             } else {

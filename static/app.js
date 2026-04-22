@@ -2527,7 +2527,7 @@ function reinitialiser(){
         max-width: 100%;
         box-sizing: border-box;
     `;
-    div.textContent = `${index + 1}. ${magasin}`;
+    //div.textContent = `${index + 1}. ${magasin}`;
     
     // Effet hover
     div.addEventListener('mouseenter', () => {
@@ -2946,8 +2946,6 @@ function exporterTXT() {
             } else {
                 pu = prixNum-(Number(prixNum) * (Number(remise) / 100));
             }
-
-
 
             let remise   = tds[10].innerText.trim();
             let depot    = rec_depot;

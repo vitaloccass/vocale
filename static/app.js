@@ -2941,14 +2941,14 @@ function exporterTXT() {
 
             let prixNum = toNumber(prix);
             let code_fournisseur = tds[4].innerText.trim(); 
+            let remise   = tds[10].innerText.trim();
             
             if (fournisseursSpeciaux.includes(code_fournisseur)) {
                 pu = prixNum-(Number(prixNum) * (Number(remise) / 100)) * 1.2;
             } else {
                 pu = prixNum-(Number(prixNum) * (Number(remise) / 100));
             }
-
-            let remise   = tds[10].innerText.trim();
+            
             let depot    = rec_depot;
             let affaire  = rec_affaire;
 

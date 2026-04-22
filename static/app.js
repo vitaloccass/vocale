@@ -510,11 +510,12 @@ function afficherListeFiltre(articles) {
 
                 let code_fournisseur = targetRow.children[4];
 
+                const tdpu =null;
                 if (fournisseursSpeciaux.includes(code_fournisseur)) {
-                    const tdpu = targetRow.children[9]; // la cellule DOM
+                    tdpu = targetRow.children[9]; // la cellule DOM
                     tdpu.innerText = pu * 1.2;
                 }else{
-                    const tdpu = targetRow.children[9]; // la cellule DOM
+                    tdpu = targetRow.children[9]; // la cellule DOM
                     tdpu.innerText = pu;
                 }
 
@@ -753,11 +754,12 @@ function selectionnerArticleParNumero(numero) {
 
             let code_fournisseur = targetRow.children[4];
 
+            const tdpu =null;
             if (fournisseursSpeciaux.includes(code_fournisseur)) {
-                const tdpu = targetRow.children[9]; // la cellule DOM
+                tdpu = targetRow.children[9]; // la cellule DOM
                 tdpu.innerText = pu * 1.2;
             }else{
-                const tdpu = targetRow.children[9]; // la cellule DOM
+                tdpu = targetRow.children[9]; // la cellule DOM
                 tdpu.innerText = pu;
             }
 
@@ -968,11 +970,12 @@ function selectionnerFournisseurParNumero(numero) {
 
         let code_fournisseur = targetRow.children[4];
 
+        const tdpu =null;
         if (fournisseursSpeciaux.includes(code_fournisseur)) {
-            const tdpu = targetRow.children[9]; // la cellule DOM
+            tdpu = targetRow.children[9]; // la cellule DOM
             tdpu.innerText = pu * 1.2;
         }else{
-            const tdpu = targetRow.children[9]; // la cellule DOM
+            tdpu = targetRow.children[9]; // la cellule DOM
             tdpu.innerText = pu;
         }
 
@@ -1222,11 +1225,12 @@ function afficherFournisseurFiltre(fournisseur) {
 
                 let code_fournisseur = targetRow.children[4];
 
+                const tdpu =null;
                 if (fournisseursSpeciaux.includes(code_fournisseur)) {
-                    const tdpu = targetRow.children[9]; // la cellule DOM
+                    tdpu = targetRow.children[9]; // la cellule DOM
                     tdpu.innerText = pu * 1.2;
                 }else{
-                    const tdpu = targetRow.children[9]; // la cellule DOM
+                    tdpu = targetRow.children[9]; // la cellule DOM
                     tdpu.innerText = pu;
                 }
 

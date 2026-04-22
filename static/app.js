@@ -504,8 +504,19 @@ function afficherListeFiltre(articles) {
                 console.log("Remise reçu :", remise);
                 tdremise.innerText = remise;
 
-                const tdpu = targetRow.children[9]; // la cellule DOM
-                tdpu.innerText = pu;
+                const fournisseursSpeciaux = [
+                'LOCA001','LOCB001','LOCJ003','LOCP001','LOCP016','LOCU001'
+                ];
+
+                let code_fournisseur = tds[4] ? tds[4].innerHTML : "";
+
+                if (fournisseursSpeciaux.includes(code_fournisseur)) {
+                    const tdpu = targetRow.children[9]; // la cellule DOM
+                    tdpu.innerText = pu * 1.2;
+                }else{
+                    const tdpu = targetRow.children[9]; // la cellule DOM
+                    tdpu.innerText = pu;
+                }
 
                 const puBrut = parseFloat(targetRow.children[9].innerText); // valeur numérique du PU
                 const remiseVal = parseFloat(targetRow.children[10].innerText); // valeur numérique de la remise
@@ -736,8 +747,19 @@ function selectionnerArticleParNumero(numero) {
             console.log("Remise reçu :", remise);
             tdremise.innerText = remise;
 
-            const tdpu = targetRow.children[9]; // la cellule DOM
-            tdpu.innerText = pu;
+            const fournisseursSpeciaux = [
+            'LOCA001','LOCB001','LOCJ003','LOCP001','LOCP016','LOCU001'
+            ];
+
+            let code_fournisseur = tds[4] ? tds[4].innerHTML : "";
+
+            if (fournisseursSpeciaux.includes(code_fournisseur)) {
+                const tdpu = targetRow.children[9]; // la cellule DOM
+                tdpu.innerText = pu * 1.2;
+            }else{
+                const tdpu = targetRow.children[9]; // la cellule DOM
+                tdpu.innerText = pu;
+            }
 
             const puBrut = parseFloat(targetRow.children[9].innerText); // valeur numérique du PU
             const remiseVal = parseFloat(targetRow.children[10].innerText); // valeur numérique de la remise
@@ -940,8 +962,19 @@ function selectionnerFournisseurParNumero(numero) {
         console.log("Remise reçu :", remise);
         tdremise.innerText = remise;
 
-        const tdpu = targetRow.children[9]; // la cellule DOM
-        tdpu.innerText = pu;
+        const fournisseursSpeciaux = [
+        'LOCA001','LOCB001','LOCJ003','LOCP001','LOCP016','LOCU001'
+        ];
+
+        let code_fournisseur = tds[4] ? tds[4].innerHTML : "";
+
+        if (fournisseursSpeciaux.includes(code_fournisseur)) {
+            const tdpu = targetRow.children[9]; // la cellule DOM
+            tdpu.innerText = pu * 1.2;
+        }else{
+            const tdpu = targetRow.children[9]; // la cellule DOM
+            tdpu.innerText = pu;
+        }
 
         const puBrut = parseFloat(targetRow.children[9].innerText); // valeur numérique du PU
         const remiseVal = parseFloat(targetRow.children[10].innerText); // valeur numérique de la remise
@@ -1183,8 +1216,19 @@ function afficherFournisseurFiltre(fournisseur) {
                 console.log("Remise reçu :", remise);
                 tdremise.innerText = remise;
 
-                const tdpu = targetRow.children[9]; // la cellule DOM
-                tdpu.innerText = pu;
+                const fournisseursSpeciaux = [
+                'LOCA001','LOCB001','LOCJ003','LOCP001','LOCP016','LOCU001'
+                ];
+
+                let code_fournisseur = tds[4] ? tds[4].innerHTML : "";
+
+                if (fournisseursSpeciaux.includes(code_fournisseur)) {
+                    const tdpu = targetRow.children[9]; // la cellule DOM
+                    tdpu.innerText = pu * 1.2;
+                }else{
+                    const tdpu = targetRow.children[9]; // la cellule DOM
+                    tdpu.innerText = pu;
+                }
 
                 const puBrut = parseFloat(targetRow.children[9].innerText); // valeur numérique du PU
                 const remiseVal = parseFloat(targetRow.children[10].innerText); // valeur numérique de la remise
@@ -2822,13 +2866,9 @@ function calculerTTC() {
             'LOCA001','LOCB001','LOCJ003','LOCP001','LOCP016','LOCU001'
         ];
 
-        let ttc = qte * pu * (1 - remise / 100);
-
-        // Si fournisseur spécial → TVA 20%
-        if (fournisseursSpeciaux.includes(code_fournisseur)) {
-            ttc = ttc * 1.2;
-        }
-
+        
+        let ttc  = qte * pu;
+       
         // Mise à jour cellule TTC
         if (cellules[11]) {
             cellules[11].innerText = isNaN(ttc) ? '' : ttc.toFixed(2);
@@ -2898,16 +2938,18 @@ function exporterTXT() {
             let prixNum = toNumber(prix);
             let code_fournisseur = tds[4] ? tds[4].innerHTML : "";
             if (fournisseursSpeciaux.includes(code_fournisseur)) {
-                pu = prixNum;
+                pu = prixNum-(Number(prixNum) * (Number(remise) / 100)) * 1.2;
             } else {
-                pu = prixNum;
+                pu = prixNum-(Number(prixNum) * (Number(remise) / 100));
             }
+
+
 
             let remise   = tds[10].innerText.trim();
             let depot    = rec_depot;
             let affaire  = rec_affaire;
 
-            let mtt = (Number(qte) * (Number(pu)-(Number(pu) * (Number(remise) / 100))))* 1.2;
+            let mtt = Number(qte) * Number(pu);
 
             if (recs.toLowerCase().includes("vente")) {
                 lines.push(`1\t6\t${numFact}\t${dateFact}\t${tsena}\t${nomClient}\t1\t${ref}\t${article}\t${pu}\t${qte}\t${remise}\t${depot}\t${affaire}\t${rec_souche}`);

@@ -1667,8 +1667,8 @@ function afficher_magasins(magasins) {
 
                     const typesEl = document.querySelector('.lbltype');
                     const types = typesEl ? typesEl.innerText.trim() : '';
-                    alert(types);
-                    if (types == 'VENTE') {
+
+                    if (types == 'Type : VENTE') {
                         num_fact.innerText = data.num_fact;
                     } else {
                         num_fact.innerText = data.num_fact.replace('FA', 'FACT');

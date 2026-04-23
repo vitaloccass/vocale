@@ -1886,7 +1886,10 @@ function traiterChoixdebut(choix) {
                 tdtsena.innerText   = rec;
                 tdDepot.innerText   = rec1;
                 tdAffaire.innerText = rec2;
-                tdNumFact.innerText = rec3;
+
+                const numFact = String(rec3 ?? '');
+
+                tdNumFact.innerText = choix === "VENTE" ? numFact : numFact.replace('FA', 'FAC');
 
                 code_fournisseur.innerText=data.code_tsena;
                 fournisseur.innerText=data.nom_tsena.replace('LOCCA','').trim();

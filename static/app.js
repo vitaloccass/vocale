@@ -1665,8 +1665,14 @@ function afficher_magasins(magasins) {
                     const code_fournisseur = targetRow.children[4];
                     const fournisseur = targetRow.children[5];
 
-                    num_fact.innerText=data.num_fact;
+                    const types = document.getElementById('lblnum_fact').innerText;
 
+                    if (types == 'VENTE') {
+                        num_fact.innerText = data.num_fact;
+                    } else {
+                        num_fact.innerText = data.num_fact.replace('FA', 'FACT');
+                    }
+                    
                     let d = new Date();
                     let date =
                         d.getFullYear() + "-" +

@@ -2954,9 +2954,9 @@ function exporterTXT() {
             let remise   = tds[10].innerText.trim();
             
             if (fournisseursSpeciaux.includes(code_fournisseur)) {
-                pu = prixNum-(Number(prixNum) * (Number(remise) / 100)) * 1.2;
+                pu = prixNum * 1.2;
             } else {
-                pu = prixNum-(Number(prixNum) * (Number(remise) / 100));
+                pu = prixNum;
             }
             
             let depot    = rec_depot;

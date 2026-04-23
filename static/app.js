@@ -1665,7 +1665,7 @@ function afficher_magasins(magasins) {
                     const code_fournisseur = targetRow.children[4];
                     const fournisseur = targetRow.children[5];
 
-                    let types = document.getElementById('lblnum_fact').innerText;
+                    let types = document.getElementById('lbltype').innerText;
 
                     if (types == 'VENTE') {
                         num_fact.innerText = data.num_fact;

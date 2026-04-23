@@ -522,7 +522,7 @@ function afficherListeFiltre(articles) {
                 const puBrut = parseFloat(targetRow.children[9].innerText); // valeur numérique du PU
                 const remiseVal = parseFloat(targetRow.children[10].innerText); // valeur numérique de la remise
 
-                const puCalcule = puBrut - ((puBrut * remiseVal) / 100); // calcul du prix remisé
+                const puCalcule = puBrut; // calcul du prix remisé
                 console.log("PU calculé :", puCalcule);
                 tdpu.innerText = puCalcule;
 
@@ -766,7 +766,7 @@ function selectionnerArticleParNumero(numero) {
             const puBrut = parseFloat(targetRow.children[9].innerText); // valeur numérique du PU
             const remiseVal = parseFloat(targetRow.children[10].innerText); // valeur numérique de la remise
 
-            const puCalcule = puBrut - ((puBrut * remiseVal) / 100); // calcul du prix remisé
+            const puCalcule = puBrut; // calcul du prix remisé
             console.log("PU calculé :", puCalcule);
             tdpu.innerText = puCalcule;
 
@@ -982,7 +982,7 @@ function selectionnerFournisseurParNumero(numero) {
         const puBrut = parseFloat(targetRow.children[9].innerText); // valeur numérique du PU
         const remiseVal = parseFloat(targetRow.children[10].innerText); // valeur numérique de la remise
 
-        const puCalcule = puBrut - ((puBrut * remiseVal) / 100); // calcul du prix remisé
+        const puCalcule = puBrut; // calcul du prix remisé
         console.log("PU calculé :", puCalcule);
         tdpu.innerText = puCalcule;
 
@@ -1237,7 +1237,7 @@ function afficherFournisseurFiltre(fournisseur) {
                 const puBrut = parseFloat(targetRow.children[9].innerText); // valeur numérique du PU
                 const remiseVal = parseFloat(targetRow.children[10].innerText); // valeur numérique de la remise
 
-                const puCalcule = puBrut - ((puBrut * remiseVal) / 100); // calcul du prix remisé
+                const puCalcule = puBrut; // calcul du prix remisé
                 console.log("PU calculé :", puCalcule);
                 tdpu.innerText = puCalcule;
 
@@ -2952,12 +2952,6 @@ function exporterTXT() {
             let prixNum = toNumber(prix);
             let code_fournisseur = tds[4].innerText.trim(); 
             let remise   = tds[10].innerText.trim();
-            
-            if (fournisseursSpeciaux.includes(code_fournisseur)) {
-                pu = prixNum * 1.2;
-            } else {
-                pu = prixNum;
-            }
             
             let depot    = rec_depot;
             let affaire  = rec_affaire;

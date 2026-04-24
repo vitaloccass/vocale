@@ -243,29 +243,28 @@ def accueil():
 
 # ============= API ENDPOINTS =============
 
-@app.route('/get_tsena', methods=['GET'])
+@app.route('/get_tsena')
 def get_tsena():
-    """Récupérer les infos Tsena et générer le numéro de facture"""
-    code = request.args.get('code', '')
-    if not code:
-        return jsonify({
-            "code_tsena": "",
-            "depot": "",
-            "affaire": "",
-            "nom_tsena": "",
-            "souche": "",
-            "num_fact": ""
-        })
-
-    conn = connecter_sqlite()
     try:
+        code = request.args.get('code', '')
+        if not code:
+            return jsonify({
+                "code_tsena": "",
+                "depot": "",
+                "affaire": "",
+                "nom_tsena": "",
+                "souche": "",
+                "num_fact": ""
+            })
+
+        conn = connecter_sqlite()
         code_modifie = code.strip().upper().replace(' ', '')
         cursor = conn.cursor()
         cursor.execute(
             "SELECT code_tsena, depot, affaire, nom_tsena, souche FROM correspondance WHERE code=?",
             (code_modifie,)
         )
-        row_correspondance = cursor.fetchone()  # ✅ nom distinct
+        row_correspondance = cursor.fetchone()
 
         if not row_correspondance:
             return jsonify({
@@ -277,7 +276,6 @@ def get_tsena():
                 "num_fact": ""
             })
 
-        # Génération du numéro de facture
         base_date = datetime.now()
         jour = base_date.day
         mois = base_date.month
@@ -290,30 +288,33 @@ def get_tsena():
             "SELECT date, compteur FROM compteur WHERE code_tsena=? AND date=?",
             (code_modifie, date_jour,)
         )
-        row_compteur = cursor.fetchone()  # ✅ nom distinct
+        row_compteur = cursor.fetchone()
 
-        if row_compteur is None:  # ✅ pas de ligne → premier numéro du jour
+        if row_compteur is None:
             compteur = 1
-            cursor.execute(
-            
-            "UPDATE compteur SET date = ? WHERE code_tsena = ?",
-                (date_jour,code_modifie,)
-            )
         else:
-            compteur = row_compteur["compteur"] + 1  # ✅ clé string, pas variable
+            compteur = row_compteur["compteur"] + 1
 
-        num_fact = f"{t}FA{date_jour}{compteur}"  # ✅ compteur inclus
+        cursor.execute(
+            "INSERT OR REPLACE INTO compteur (code_tsena, date, compteur) VALUES (?, ?, ?)",
+            (code_modifie, date_jour, compteur)
+        )
+        conn.commit()
+
+        num_fact = f"{t}FA{date_jour}{compteur}"
 
         return jsonify({
-            "code_tsena": row_correspondance["code_tsena"],  # ✅ bonne variable
+            "code_tsena": row_correspondance["code_tsena"],
             "depot":      row_correspondance["depot"],
             "affaire":    row_correspondance["affaire"],
             "nom_tsena":  row_correspondance["nom_tsena"],
             "souche":     row_correspondance["souche"],
             "num_fact":   num_fact
         })
-    finally:
-        conn.close()
+
+    except Exception as e:
+        # ✅ Retourne l'erreur en JSON au lieu d'une page HTML 500
+        return jsonify({"error": str(e)}), 500
 
 # ============= GOOGLE DRIVE (SERVICE ACCOUNT - MOBILE COMPATIBLE) =============
 

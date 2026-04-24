@@ -301,74 +301,67 @@ def get_tsena():
     try:
         code = request.args.get('code', '')
         if not code:
-            return jsonify({
-                "code_tsena": "",
-                "depot": "",
-                "affaire": "",
-                "nom_tsena": "",
-                "souche": "",
-                "num_fact": ""
-            })
+            return jsonify({"code_tsena": "", "depot": "", "affaire": "",
+                            "nom_tsena": "", "souche": "", "num_fact": ""})
 
-        conn = connecter_sqlite()
         code_modifie = code.strip().upper().replace(' ', '')
-        cursor = conn.cursor()
-        cursor.execute(
+
+        # 1. Correspondance
+        rows = _turso_execute(
             "SELECT code_tsena, depot, affaire, nom_tsena, souche FROM correspondance WHERE code=?",
             (code_modifie,)
         )
-        row_correspondance = cursor.fetchone()
+        if not rows:
+            return jsonify({"code_tsena": "", "depot": "", "affaire": "",
+                            "nom_tsena": "", "souche": "", "num_fact": ""})
 
-        if not row_correspondance:
-            return jsonify({
-                "code_tsena": "",
-                "depot": "",
-                "affaire": "",
-                "nom_tsena": "",
-                "souche": "",
-                "num_fact": ""
-            })
+        row = rows[0]
 
-        base_date = datetime.now()
-        jour = base_date.day
-        mois = base_date.month
-        short_year = str(base_date.year)[-2:]
-        t = row_correspondance["depot"].replace("DP", "").lstrip("0")
-        jour_clean = str(jour).lstrip("0")
-        date_jour = f"{jour_clean}{mois}{short_year}"
+        # 2. Date
+        now        = datetime.now()
+        jour_clean = str(now.day).lstrip("0") or "0"
+        date_jour  = f"{jour_clean}{now.month}{str(now.year)[-2:]}"
+        t          = row["depot"].replace("DP", "").lstrip("0")
 
-        cursor.execute(
+        # 3. Compteur
+        compteur_rows = _turso_execute(
             "SELECT date, compteur FROM compteur WHERE code_tsena=?",
             (code_modifie,)
         )
-        row_compteur = cursor.fetchone()
+        row_compteur = compteur_rows[0] if compteur_rows else None
 
-        if row_compteur["date"] != date_jour:
-            # Nouveau jour → reset à 1
+        if row_compteur is None:
             compteur = 1
+            _turso_execute(
+                "INSERT INTO compteur (code_tsena, date, compteur) VALUES (?, ?, ?)",
+                (code_modifie, date_jour, compteur)
+            )
+        elif row_compteur["date"] != date_jour:
+            compteur = 1
+            _turso_execute(
+                "UPDATE compteur SET date=?, compteur=? WHERE code_tsena=?",
+                (date_jour, compteur, code_modifie)
+            )
         else:
-            # Même jour → incrémenter
-            compteur = row_compteur["compteur"] + 1
-
-        cursor.execute(
-            "UPDATE compteur SET date=?, compteur=? WHERE code_tsena=?",
-            (date_jour, compteur, code_modifie)
-        )
-        conn.commit()
+            compteur = int(row_compteur["compteur"]) + 1
+            _turso_execute(
+                "UPDATE compteur SET compteur=? WHERE code_tsena=?",
+                (compteur, code_modifie)
+            )
 
         num_fact = f"{t}FA{date_jour}{compteur}"
 
         return jsonify({
-            "code_tsena": row_correspondance["code_tsena"],
-            "depot":      row_correspondance["depot"],
-            "affaire":    row_correspondance["affaire"],
-            "nom_tsena":  row_correspondance["nom_tsena"],
-            "souche":     row_correspondance["souche"],
+            "code_tsena": row["code_tsena"],
+            "depot":      row["depot"],
+            "affaire":    row["affaire"],
+            "nom_tsena":  row["nom_tsena"],
+            "souche":     row["souche"],
             "num_fact":   num_fact
         })
 
     except Exception as e:
-        # ✅ Retourne l'erreur en JSON au lieu d'une page HTML 500
+        import traceback; traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
 # ============= GOOGLE DRIVE (SERVICE ACCOUNT - MOBILE COMPATIBLE) =============

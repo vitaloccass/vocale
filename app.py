@@ -292,14 +292,12 @@ def get_tsena():
 
         if row_compteur is None:
             compteur = 1
-            cursor.execute(
-                "UPDATE compteur SET date=?,compteur=1 WHERE code_tsena=?",
-                (date_jour,code_modifie,)
-            )
-            conn.commit()
         else:
             compteur = row_compteur["compteur"] + 1
-
+            cursor.execute(
+                "UPDATE compteur SET date=?,compteur=? WHERE code_tsena=?",
+                (date_jour,compteur,code_modifie,)
+            )
         conn.commit()
 
         num_fact = f"{t}FA{date_jour}{compteur}"

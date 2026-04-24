@@ -571,55 +571,40 @@ def download_file(filename):
 
 @app.route('/get_fournisseur', methods=['GET'])
 def get_fournisseur():
-    conn = connecter_sqlite()
     try:
-        cursor = conn.cursor()
-        cursor.execute(
-            "SELECT code_fournisseur, nom_fournisseur FROM fournisseur"
-        )
-        rows = cursor.fetchall()
+        rows = _turso_execute("SELECT code_fournisseur, nom_fournisseur FROM fournisseur")
 
         if not rows:
             return jsonify([])
 
-        # Return list of all suppliers
         return jsonify([
             {
-                "code_fournisseur": row[0],
-                "nom_fournisseur": row[1]
+                "code_fournisseur": row["code_fournisseur"],
+                "nom_fournisseur":  row["nom_fournisseur"]
             }
             for row in rows
         ])
-    finally:
-        conn.close()
 
+    except Exception as e:
+        import traceback; traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/get_stock', methods=['GET'])
 def get_stock():
-    conn = connecter_sqlite()
     try:
-        cursor = conn.cursor()
-        cursor.execute(
-            "SELECT reference, designation FROM correspondance_article"
-        )
-        rows = cursor.fetchall()
+        rows = _turso_execute("SELECT reference, designation FROM correspondance_article")
 
-        articles_valides = [
-            {"id": row[0], "name": row[1]}
-            for row in rows
-            if row[0] and row[1] and
-            str(row[0]).strip() != '' and
-            str(row[1]).strip() != ''
-        ]
+        seen = {}
+        for row in rows:
+            ref  = str(row["reference"] or "").strip()
+            desc = str(row["designation"] or "").strip()
+            if ref and desc:
+                seen[ref] = {"id": ref, "name": desc}
 
-        articles_uniques = {article['id']: article for article in articles_valides}
-        articles_list = list(articles_uniques.values())
-
-        print(f"✅ {len(articles_list)} articles uniques")
-
-        return jsonify({"list": articles_list}), 200
+        return jsonify({"list": list(seen.values())}), 200
 
     except Exception as e:
+        import traceback; traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
 @app.route('/get_code/<designation>', methods=['GET'])

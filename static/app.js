@@ -2954,7 +2954,7 @@ function exporterTXT() {
             let depot    = rec_depot;
             let affaire  = rec_affaire;
 
-            let mtt = Number(qte) * Number(pu);
+            let mtt = Number(qte) * Number(prixNum);
 
             if (recs.toLowerCase().includes("vente")) {
                 lines.push(`1\t6\t${numFact}\t${dateFact}\t${tsena}\t${nomClient}\t1\t${ref}\t${article}\t${prixNum}\t${qte}\t${remise}\t${depot}\t${affaire}\t${rec_souche}`);

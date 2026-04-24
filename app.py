@@ -296,6 +296,7 @@ def get_tsena():
                 "UPDATE compteur SET date=?,compteur=1 WHERE code_tsena=?",
                 (date_jour,code_modifie,)
             )
+            conn.commit()
         else:
             compteur = row_compteur["compteur"] + 1
 

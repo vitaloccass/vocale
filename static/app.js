@@ -93,6 +93,7 @@ if ("webkitSpeechRecognition" in window || "SpeechRecognition" in window) {
             const btn = document.getElementById("micBtn");
             btn.classList.remove("listening");
             btn.innerText = "🎤 Commencer";
+            console.log("yes");
         }
     };
 

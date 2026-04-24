@@ -34,11 +34,64 @@ UPLOAD_FOLDER = os.path.join(os.path.dirname(__file__), "uploads")
 # Créer le dossier uploads s'il n'existe pas
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
+TURSO_URL = "https://vocale-vitaloccass.aws-ap-northeast-1.turso.io"
+TURSO_TOKEN = "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJhIjoicnciLCJpYXQiOjE3NzcwMjA0MDgsImlkIjoiMDE5ZGJlYTEtM2EwMS03MmU2LWE2ZDgtN2ZmM2RkYzVlMTZhIiwicmlkIjoiY2JiOTcwYWUtYmQxOC00MjYzLTgzYzgtMTU4NDk0OGNiODk4In0.3qmHkcN6TVLTq7Kbql4hRevVfsB8nCMOMXlbsvslIb3P1Fe-mQeU9_v8aTxiONu8RrYhWfHywUu8X3-PA28PAQ"
+
+headers = {
+    "Authorization": f"Bearer {TURSO_TOKEN}",
+    "Content-Type": "application/json"
+}
+
+#def connecter_sqlite():
+#    """Connexion à la base de données SQLite"""
+#    conn = sqlite3.connect(DB_PATH)
+#    conn.row_factory = sqlite3.Row
+#    return conn
+
+
+def _turso_execute(sql, params=[]):
+    args = [{"type": "text", "value": str(p)} for p in params]
+    res = requests.post(
+        f"{TURSO_URL}/v2/pipeline",
+        headers=headers,
+        json={"requests": [{"type": "execute", "stmt": {"sql": sql, "args": args}}]}
+    )
+    data = res.json()
+    result = data["results"][0]["response"]["result"]
+    cols = [c["name"] for c in result["cols"]]
+    return [dict(zip(cols, [v["value"] for v in row])) for row in result["rows"]]
+
+class TursoCursor:
+    def __init__(self):
+        self.results = []
+
+    def execute(self, sql, params=[]):
+        self.results = _turso_execute(sql, params)
+        return self
+
+    def fetchall(self):
+        return self.results
+
+    def fetchone(self):
+        return self.results[0] if self.results else None
+
+class TursoConnection:
+    def cursor(self):
+        return TursoCursor()
+
+    def execute(self, sql, params=[]):
+        c = TursoCursor()
+        c.execute(sql, params)
+        return c
+
+    def commit(self):
+        pass
+
+    def close(self):
+        pass
+
 def connecter_sqlite():
-    """Connexion à la base de données SQLite"""
-    conn = sqlite3.connect(DB_PATH)
-    conn.row_factory = sqlite3.Row
-    return conn
+    return TursoConnection()
 
 def login_required(f):
     """Décorateur pour protéger les routes"""

@@ -285,19 +285,22 @@ def get_tsena():
         date_jour = f"{jour_clean}{mois}{short_year}"
 
         cursor.execute(
-            "SELECT date, compteur FROM compteur WHERE code_tsena=? AND date=?",
-            (code_modifie, date_jour,)
+            "SELECT date, compteur FROM compteur WHERE code_tsena=?",
+            (code_modifie,)
         )
         row_compteur = cursor.fetchone()
 
-        if row_compteur is None:
+        if row_compteur["date"] != date_jour:
+            # Nouveau jour → reset à 1
             compteur = 1
         else:
+            # Même jour → incrémenter
             compteur = row_compteur["compteur"] + 1
-            cursor.execute(
-                "UPDATE compteur SET date=?,compteur=? WHERE code_tsena=?",
-                (date_jour,compteur,code_modifie,)
-            )
+
+        cursor.execute(
+            "UPDATE compteur SET date=?, compteur=? WHERE code_tsena=?",
+            (date_jour, compteur, code_modifie)
+        )
         conn.commit()
 
         num_fact = f"{t}FA{date_jour}{compteur}"

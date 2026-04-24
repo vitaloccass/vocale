@@ -253,6 +253,7 @@ def get_tsena():
             "depot": "",
             "affaire": "",
             "nom_tsena": "",
+            "souche": "",
             "num_fact": ""
         })
 
@@ -261,12 +262,12 @@ def get_tsena():
         code_modifie = code.strip().upper().replace(' ', '')
         cursor = conn.cursor()
         cursor.execute(
-            "SELECT code_tsena, depot, affaire, nom_tsena,souche FROM correspondance WHERE code=?",
+            "SELECT code_tsena, depot, affaire, nom_tsena, souche FROM correspondance WHERE code=?",
             (code_modifie,)
         )
-        row = cursor.fetchone()
+        row_correspondance = cursor.fetchone()  # ✅ nom distinct
 
-        if not row:
+        if not row_correspondance:
             return jsonify({
                 "code_tsena": "",
                 "depot": "",
@@ -281,17 +282,35 @@ def get_tsena():
         jour = base_date.day
         mois = base_date.month
         short_year = str(base_date.year)[-2:]
-        t = row["depot"].replace("DP", "").lstrip("0")
+        t = row_correspondance["depot"].replace("DP", "").lstrip("0")
         jour_clean = str(jour).lstrip("0")
-        num_fact = f"{t}FA{jour_clean}{mois}{short_year}"
+        date_jour = f"{jour_clean}{mois}{short_year}"
+
+        cursor.execute(
+            "SELECT date, compteur FROM compteur WHERE code_tsena=? AND date=?",
+            (code_modifie, date_jour,)
+        )
+        row_compteur = cursor.fetchone()  # ✅ nom distinct
+
+        if row_compteur is None:  # ✅ pas de ligne → premier numéro du jour
+            compteur = 1
+            cursor.execute(
+            
+            "UPDATE compteur SET date = ? WHERE code_tsena = ?",
+                (date_jour,code_modifie,)
+            )
+        else:
+            compteur = row_compteur["compteur"] + 1  # ✅ clé string, pas variable
+
+        num_fact = f"{t}FA{date_jour}{compteur}"  # ✅ compteur inclus
 
         return jsonify({
-            "code_tsena": row["code_tsena"],
-            "depot": row["depot"],
-            "affaire": row["affaire"],
-            "nom_tsena": row["nom_tsena"],
-            "souche": row["souche"],
-            "num_fact": num_fact
+            "code_tsena": row_correspondance["code_tsena"],  # ✅ bonne variable
+            "depot":      row_correspondance["depot"],
+            "affaire":    row_correspondance["affaire"],
+            "nom_tsena":  row_correspondance["nom_tsena"],
+            "souche":     row_correspondance["souche"],
+            "num_fact":   num_fact
         })
     finally:
         conn.close()

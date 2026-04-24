@@ -1897,7 +1897,7 @@ function traiterChoixdebut(choix) {
                 const numFact = String(rec3 ?? '');
 
                 tdNumFact.innerText = choix === "VENTE" ? numFact : numFact.replace('FA', 'FAC');
-
+                
                 code_fournisseur.innerText=data.code_tsena;
                 fournisseur.innerText=data.nom_tsena.replace('LOCCA','').trim();
             });
@@ -2936,8 +2936,6 @@ function exporterTXT() {
             let article  = tds[7].innerText.trim();
             let qte      = tds[8].innerText.trim();
 
-            let pu = 0;
-
             const fournisseursSpeciaux = [
                 'LOCA001','LOCB001','LOCJ003','LOCP001','LOCP016','LOCU001'
             ];
@@ -2959,11 +2957,11 @@ function exporterTXT() {
             let mtt = Number(qte) * Number(pu);
 
             if (recs.toLowerCase().includes("vente")) {
-                lines.push(`1\t6\t${numFact}\t${dateFact}\t${tsena}\t${nomClient}\t1\t${ref}\t${article}\t${pu}\t${qte}\t${remise}\t${depot}\t${affaire}\t${rec_souche}`);
+                lines.push(`1\t6\t${numFact}\t${dateFact}\t${tsena}\t${nomClient}\t1\t${ref}\t${article}\t${prixNum}\t${qte}\t${remise}\t${depot}\t${affaire}\t${rec_souche}`);
             } else if (recs.toLowerCase().includes("bc")) {
-                lines.push(`1\t12\t${numFact}\t${dateFact}\t${code_fournisseur}\t${nomClient}\t1\t${ref}\t${article}\t${pu}\t${qte}\t${remise}\t${depot}\t${affaire}\t${rec_souche}`);
+                lines.push(`1\t12\t${numFact}\t${dateFact}\t${code_fournisseur}\t${nomClient}\t1\t${ref}\t${article}\t${prixNum}\t${qte}\t${remise}\t${depot}\t${affaire}\t${rec_souche}`);
             } else {
-                lines.push(`1\t16\t${numFact}\t${dateFact}\t${code_fournisseur}\t${nomClient}\t1\t${ref}\t${article}\t${pu}\t${qte}\t${remise}\t${depot}\t${affaire}\t${rec_souche}`);
+                lines.push(`1\t16\t${numFact}\t${dateFact}\t${code_fournisseur}\t${nomClient}\t1\t${ref}\t${article}\t${prixNum}\t${qte}\t${remise}\t${depot}\t${affaire}\t${rec_souche}`);
             }
         }
     });

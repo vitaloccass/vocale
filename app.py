@@ -611,6 +611,9 @@ def get_code(designation):
         )
         row = cursor.fetchone()
 
+        print(row)
+        print(row[0])
+
         if row:
             return jsonify({"reference": row[0]})
         else:

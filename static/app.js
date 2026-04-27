@@ -971,7 +971,7 @@ function selectionnerFournisseurParNumero(numero) {
         ];
 
         let code_fournisseur = targetRow.children[4].innerText.trim(); 
-
+        alert(code_fournisseur);
         let tdpu =null;
         if (fournisseursSpeciaux.includes(code_fournisseur)) {
             tdpu = targetRow.children[9]; // la cellule DOM

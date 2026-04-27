@@ -600,19 +600,20 @@ def get_stock():
         import traceback; traceback.print_exc()
         return jsonify({"error": str(e)}), 500
 
-@app.route('/get_code/<designation>', methods=['GET'])
+@app.route('/get_code/<path:designation>', methods=['GET'])
 def get_code(designation):
     try:
-        query = """
-            SELECT reference FROM correspondance_article 
-            WHERE TRIM(LOWER(REPLACE(designation, "'", ''))) = TRIM(LOWER(REPLACE(?, "'", '')))
-        """
-        rows = _turso_execute(query, (designation,))
+        # Normalisation côté Python
+        designation_normalisee = designation.strip().lower().replace("'", "'").replace("'", "'")
+
+        rows = _turso_execute(
+            "SELECT reference FROM correspondance_article WHERE TRIM(LOWER(designation)) = ?",
+            (designation_normalisee,)
+        )
 
         if not rows:
             return jsonify({"error": "Article non trouvé"}), 404
 
-        # Dédoublonnage propre
         references = list({str(row["reference"]).strip() for row in rows if row["reference"]})
 
         return jsonify({"list": references}), 200

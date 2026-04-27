@@ -793,9 +793,9 @@ function recuperer_code(designation, callback) {
     fetch(`/get_code/${encodeURIComponent(designation)}`)
         .then(response => response.json())
         .then(data => {
-            alert(data);
-            if (data.reference) {
-                callback(data.reference);
+            console.log("Réponse API:", data); // debug
+            if (data.list && data.list.length > 0) {
+                callback(data.list[0]); // prend le premier résultat
             } else {
                 callback("Non trouvé");
             }

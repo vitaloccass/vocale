@@ -602,22 +602,22 @@ def get_stock():
 
 @app.route('/get_code/<designation>', methods=['GET'])
 def get_code(designation):
-    conn = connecter_sqlite()
-
     try:
-        rows = _turso_execute("SELECT reference FROM correspondance_article WHERE designation = ?",(designation,))
+        rows = _turso_execute(
+            "SELECT reference FROM correspondance_article WHERE TRIM(LOWER(designation)) = TRIM(LOWER(?))",
+            (designation,)
+        )
 
-        seen = {}
-        for row in rows:
-            ref  = str(row["reference"] or "").strip()
-            seen[ref] = {ref}
+        if not rows:
+            return jsonify({"error": "Article non trouvé"}), 404
 
-        return jsonify({"list": list(seen.values())}), 200
+        # Dédoublonnage propre
+        references = list({str(row["reference"]).strip() for row in rows if row["reference"]})
+
+        return jsonify({"list": references}), 200
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
-    finally:
-        conn.close()
 
 
 # ============= AJOUT ARTICLE =============

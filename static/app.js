@@ -2943,13 +2943,13 @@ function exporterTXT() {
                 return Number(val.replace(/\s/g, '').replace(',', '.')) || 0;
             }
 
-            let prixNum = toNumber(prix);
+            
             let code_fournisseur = tds[4].innerText.trim(); 
             let remise   = tds[10].innerText.trim();
             
             let depot    = rec_depot;
             let affaire  = rec_affaire;
-
+            let prixNum = toNumber(prix)-(toNumber(prix) * toNumber(remise)/100);
             let mtt = Number(qte) * Number(prixNum);
 
             if (recs.toLowerCase().includes("vente")) {

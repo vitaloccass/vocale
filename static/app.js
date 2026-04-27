@@ -790,10 +790,10 @@ function selectionnerArticleParNumero(numero) {
 }
 
 function recuperer_code(designation, callback) {
-    alert(designation);
     fetch(`/get_code/${encodeURIComponent(designation)}`)
         .then(response => response.json())
         .then(data => {
+            alert(data);
             if (data.reference) {
                 callback(data.reference);
             } else {

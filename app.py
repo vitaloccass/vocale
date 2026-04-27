@@ -603,10 +603,11 @@ def get_stock():
 @app.route('/get_code/<designation>', methods=['GET'])
 def get_code(designation):
     try:
-        rows = _turso_execute(
-            "SELECT reference FROM correspondance_article WHERE TRIM(LOWER(designation)) = TRIM(LOWER(?))",
-            (designation,)
-        )
+        query = """
+            SELECT reference FROM correspondance_article 
+            WHERE TRIM(LOWER(REPLACE(designation, "'", ''))) = TRIM(LOWER(REPLACE(?, "'", '')))
+        """
+        rows = _turso_execute(query, (designation,))
 
         if not rows:
             return jsonify({"error": "Article non trouvé"}), 404

@@ -2949,7 +2949,7 @@ function exporterTXT() {
             
             let depot    = rec_depot;
             let affaire  = rec_affaire;
-            let prixNum = toNumber(prix)-(toNumber(prix) * toNumber(remise)/100);
+            let prixNum = toNumber(prix);
             let mtt = Number(qte) * Number(prixNum);
 
             if (recs.toLowerCase().includes("vente")) {

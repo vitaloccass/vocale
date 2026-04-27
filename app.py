@@ -603,22 +603,16 @@ def get_stock():
 @app.route('/get_code/<designation>', methods=['GET'])
 def get_code(designation):
     conn = connecter_sqlite()
+
     try:
-        cursor = conn.cursor()
-        cursor.execute(
-            "SELECT reference FROM correspondance_article WHERE designation = ?",
-            (designation,)
-        )
-        row = cursor.fetchone()
+        rows = _turso_execute("SELECT reference FROM correspondance_article WHERE designation = ?",(designation,))
 
-        print(row)
-        print(row[0])
+        seen = {}
+        for row in rows:
+            ref  = str(row["reference"] or "").strip()
+            seen[ref] = {ref}
 
-        if row:
-            return jsonify({"reference": row[0]})
-        else:
-            return jsonify({"error": "Article non trouvé"}), 404
-
+        return jsonify({"list": list(seen.values())}), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

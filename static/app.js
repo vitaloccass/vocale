@@ -967,11 +967,10 @@ function selectionnerFournisseurParNumero(numero) {
         tdremise.innerText = remise;
 
         const fournisseursSpeciaux = [
-        'LOCA001','LOCB001','LOCJ003','LOCP001','LOCP016','LOCU001'
+        'LOCA001','LOCB001','LOCJ003','LOCP016','LOCU001'
         ];
 
         let code_fournisseur = targetRow.children[4].innerText.trim(); 
-        alert(code_fournisseur);
         let tdpu =null;
         if (fournisseursSpeciaux.includes(code_fournisseur)) {
             tdpu = targetRow.children[9]; // la cellule DOM
@@ -1222,7 +1221,7 @@ function afficherFournisseurFiltre(fournisseur) {
                 tdremise.innerText = remise;
 
                 const fournisseursSpeciaux = [
-                'LOCA001','LOCB001','LOCJ003','LOCP001','LOCP016','LOCU001'
+                'LOCA001','LOCB001','LOCJ003','LOCP016','LOCU001'
                 ];
 
                 let code_fournisseur = targetRow.children[4].innerText.trim(); 
@@ -2878,11 +2877,6 @@ function calculerTTC() {
 
         const code_fournisseur = cellules[4]?.innerText.trim();
 
-        const fournisseursSpeciaux = [
-            'LOCA001','LOCB001','LOCJ003','LOCP001','LOCP016','LOCU001'
-        ];
-
-        
         let ttc  = qte * pu;
        
         // Mise à jour cellule TTC
@@ -2939,7 +2933,7 @@ function exporterTXT() {
             let qte      = tds[8].innerText.trim();
 
             const fournisseursSpeciaux = [
-                'LOCA001','LOCB001','LOCJ003','LOCP001','LOCP016','LOCU001'
+                'LOCA001','LOCB001','LOCJ003','LOCP016','LOCU001'
             ];
 
             let prix = tds[9]?.innerText?.trim() || '0';

@@ -758,39 +758,39 @@ def edit_article():
 @login_required
 def delete_article():
     """Supprimer un article par sa référence"""
-data = request.get_json()
-if not data:
-    return jsonify({"error": "Données JSON manquantes"}), 400
+    data = request.get_json()
+    if not data:
+        return jsonify({"error": "Données JSON manquantes"}), 400
 
-reference = (data.get("reference", "") or "").strip().upper()
-if not reference:
-    return jsonify({"error": "Référence obligatoire"}), 400
+    reference = (data.get("reference", "") or "").strip().upper()
+    if not reference:
+        return jsonify({"error": "Référence obligatoire"}), 400
 
-conn = connecter_turso()
-try:
-    result = conn.execute(
-        "SELECT reference FROM correspondance_article WHERE reference = ?",
-        (reference,)
-    )
-    existing = result.fetchone()
+    conn = connecter_sqlite()
+    try:
+        result = conn.execute(
+            "SELECT reference FROM correspondance_article WHERE reference = ?",
+            (reference,)
+        )
+        existing = result.fetchone()
 
-    if not existing:
-        return jsonify({"error": f"Article '{reference}' introuvable"}), 404
+        if not existing:
+            return jsonify({"error": f"Article '{reference}' introuvable"}), 404
 
-    conn.execute(
-        "DELETE FROM correspondance_article WHERE reference = ?",
-        (reference,)
-    )
-    conn.commit()
-    print(f"🗑️ Article supprimé : {reference}")
-    return jsonify({"success": True, "reference": reference}), 200
+        conn.execute(
+            "DELETE FROM correspondance_article WHERE reference = ?",
+            (reference,)
+        )
+        conn.commit()
+        print(f"🗑️ Article supprimé : {reference}")
+        return jsonify({"success": True, "reference": reference}), 200
 
-except Exception as e:
-    print(f"❌ Erreur suppression article : {str(e)}")
-    return jsonify({"error": str(e)}), 500
+    except Exception as e:
+        print(f"❌ Erreur suppression article : {str(e)}")
+        return jsonify({"error": str(e)}), 500
 
-finally:
-    conn.close()
+    finally:
+        conn.close()
 
 
 # ============= INITIALISATION DB =============

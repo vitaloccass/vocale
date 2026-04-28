@@ -58,8 +58,13 @@ def _turso_execute(sql, params=[]):
     )
     data = res.json()
     result = data["results"][0]["response"]["result"]
-    cols = [c["name"] for c in result["cols"]]
-    return [dict(zip(cols, [v["value"] for v in row])) for row in result["rows"]]
+    
+    # ✅ Si pas de colonnes (INSERT / UPDATE / DELETE), retourner liste vide
+    cols = [c["name"] for c in result.get("cols", [])]
+    if not cols:
+        return []
+    
+    return [dict(zip(cols, [v["value"] for v in row])) for row in result.get("rows", [])]
 
 class TursoCursor:
     def __init__(self):
@@ -670,26 +675,22 @@ def add_article():
 @app.route('/search_article', methods=['GET'])
 @login_required
 def search_article():
-    """Rechercher un article par référence ou désignation"""
     q = request.args.get('q', '').strip().upper()
     if not q:
         return jsonify({"articles": []})
 
-    conn = connecter_sqlite()
     try:
-        cursor = conn.cursor()
-        cursor.execute(
+        rows = _turso_execute(
             """SELECT reference, designation FROM correspondance_article
                WHERE UPPER(reference) LIKE ? OR UPPER(designation) LIKE ?
                ORDER BY designation LIMIT 30""",
             (f"%{q}%", f"%{q}%")
         )
-        rows = cursor.fetchall()
         return jsonify({
-            "articles": [{"reference": row[0], "designation": row[1]} for row in rows]
+            "articles": [{"reference": row["reference"], "designation": row["designation"]} for row in rows]
         })
-    finally:
-        conn.close()
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route('/edit_article', methods=['POST'])

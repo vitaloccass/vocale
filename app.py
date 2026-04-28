@@ -700,8 +700,8 @@ def edit_article():
     if not data:
         return jsonify({"error": "Données JSON manquantes"}), 400
 
-    reference_originale = (data.get("reference_originale", "") or "").strip().upper()
-    nouvelle_reference  = (data.get("nouvelle_reference", "") or "").strip().upper()
+    reference_originale  = (data.get("reference_originale", "") or "").strip().upper()
+    nouvelle_reference   = (data.get("nouvelle_reference", "") or "").strip().upper()
     nouvelle_designation = (data.get("nouvelle_designation", "") or "").strip().upper()
 
     if not reference_originale:
@@ -710,30 +710,32 @@ def edit_article():
     if not nouvelle_reference or not nouvelle_designation:
         return jsonify({"error": "Nouvelle référence et désignation obligatoires"}), 400
 
-    conn = connecter_sqlite()
+    conn = connecter_sqlite()  # libsql_experimental.connect(...)
     try:
         # Vérifier que l'article à modifier existe
-        existing = conn.execute(
+        result = conn.execute(
             "SELECT reference FROM correspondance_article WHERE reference = ?",
             (reference_originale,)
-        ).fetchone()
+        )
+        existing = result.fetchone()
 
         if not existing:
             return jsonify({"error": f"Article '{reference_originale}' introuvable"}), 404
 
         # Si la référence change, vérifier que la nouvelle n'est pas déjà prise
         if nouvelle_reference != reference_originale:
-            conflict = conn.execute(
+            result_conflict = conn.execute(
                 "SELECT reference FROM correspondance_article WHERE reference = ?",
                 (nouvelle_reference,)
-            ).fetchone()
+            )
+            conflict = result_conflict.fetchone()
             if conflict:
                 return jsonify({"error": f"La référence '{nouvelle_reference}' existe déjà"}), 409
 
         conn.execute(
             """UPDATE correspondance_article
-               SET reference = ?, designation = ?
-               WHERE reference = ?""",
+            SET reference = ?, designation = ?
+            WHERE reference = ?""",
             (nouvelle_reference, nouvelle_designation, reference_originale)
         )
         conn.commit()
@@ -756,38 +758,39 @@ def edit_article():
 @login_required
 def delete_article():
     """Supprimer un article par sa référence"""
-    data = request.get_json()
-    if not data:
-        return jsonify({"error": "Données JSON manquantes"}), 400
+data = request.get_json()
+if not data:
+    return jsonify({"error": "Données JSON manquantes"}), 400
 
-    reference = (data.get("reference", "") or "").strip().upper()
-    if not reference:
-        return jsonify({"error": "Référence obligatoire"}), 400
+reference = (data.get("reference", "") or "").strip().upper()
+if not reference:
+    return jsonify({"error": "Référence obligatoire"}), 400
 
-    conn = connecter_sqlite()
-    try:
-        existing = conn.execute(
-            "SELECT reference FROM correspondance_article WHERE reference = ?",
-            (reference,)
-        ).fetchone()
+conn = connecter_turso()
+try:
+    result = conn.execute(
+        "SELECT reference FROM correspondance_article WHERE reference = ?",
+        (reference,)
+    )
+    existing = result.fetchone()
 
-        if not existing:
-            return jsonify({"error": f"Article '{reference}' introuvable"}), 404
+    if not existing:
+        return jsonify({"error": f"Article '{reference}' introuvable"}), 404
 
-        conn.execute(
-            "DELETE FROM correspondance_article WHERE reference = ?",
-            (reference,)
-        )
-        conn.commit()
-        print(f"🗑️ Article supprimé : {reference}")
-        return jsonify({"success": True, "reference": reference}), 200
+    conn.execute(
+        "DELETE FROM correspondance_article WHERE reference = ?",
+        (reference,)
+    )
+    conn.commit()
+    print(f"🗑️ Article supprimé : {reference}")
+    return jsonify({"success": True, "reference": reference}), 200
 
-    except Exception as e:
-        print(f"❌ Erreur suppression article : {str(e)}")
-        return jsonify({"error": str(e)}), 500
+except Exception as e:
+    print(f"❌ Erreur suppression article : {str(e)}")
+    return jsonify({"error": str(e)}), 500
 
-    finally:
-        conn.close()
+finally:
+    conn.close()
 
 
 # ============= INITIALISATION DB =============

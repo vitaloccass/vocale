@@ -790,19 +790,29 @@ function selectionnerArticleParNumero(numero) {
 }
 
 function recuperer_code(designation, callback) {
-    fetch(`/get_code/${encodeURIComponent(designation)}`)
-        .then(response => response.json())
+    const BASE_URL = window.location.origin;
+    fetch(`${BASE_URL}/get_code/${encodeURIComponent(designation)}`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+            const contentType = response.headers.get("content-type");
+            if (!contentType || !contentType.includes("application/json")) {
+                throw new Error("Réponse non JSON");
+            }
+            return response.json();
+        })
         .then(data => {
-            console.log("Réponse API:", data); // debug
+            console.log("Réponse API:", data);
             if (data.list && data.list.length > 0) {
-                callback(data.list[0]); // prend le premier résultat
+                callback(data.list[0]);
             } else {
                 callback("Non trouvé");
             }
         })
         .catch(err => {
-            console.error("Erreur:", err);
-            callback("❌ Erreur");
+            console.error("Erreur get_code:", err);
+            callback("—"); // valeur neutre au lieu de "❌ Erreur"
         });
 }
 

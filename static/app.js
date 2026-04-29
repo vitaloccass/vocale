@@ -2932,7 +2932,6 @@ function exporterTXT() {
 
     trs.forEach(tr => {
         let tds = tr.querySelectorAll("td");
-        //console.log(tds);
         if (tds[3].innerText.trim() !== "") {
             let numFact  = tds[0].innerText.trim();
             dateFact     = tds[1].innerText.trim().split('-').reverse().join('/');
@@ -2942,25 +2941,17 @@ function exporterTXT() {
             let article  = tds[7].innerText.trim();
             let qte      = tds[8].innerText.trim();
 
-            const fournisseursSpeciaux = [
-                'LOCA001','LOCB001','LOCJ003','LOCP016','LOCU001'
-            ];
-
             let prix = tds[9]?.innerText?.trim() || '0';
 
-            // conversion propre
             function toNumber(val) {
                 return Number(val.replace(/\s/g, '').replace(',', '.')) || 0;
             }
 
-            
-            let code_fournisseur = tds[4].innerText.trim(); 
+            let code_fournisseur = tds[4].innerText.trim();
             let remise   = tds[10].innerText.trim();
-            
             let depot    = rec_depot;
             let affaire  = rec_affaire;
-            let prixNum = toNumber(prix);
-            let mtt = Number(qte) * Number(prixNum);
+            let prixNum  = toNumber(prix);
 
             if (recs.toLowerCase().includes("vente")) {
                 lines.push(`1\t6\t${numFact}\t${dateFact}\t${tsena}\t${nomClient}\t1\t${ref}\t${article}\t${prixNum}\t${qte}\t${remise}\t${depot}\t${affaire}\t${rec_souche}`);
@@ -2972,41 +2963,18 @@ function exporterTXT() {
         }
     });
 
-    const content = lines.join("\n");
-
-    // ✅ Fonction qui construit formData et envoie
-    function envoyerFichier(tsenaFinal) {
-        let filename = '';
-        if (recs.toLowerCase().includes("vente")) {
-            filename = `VENTE_${rec}_${nomClient}_${dateFact}.txt`;
-        } else if (recs.toLowerCase().includes("bc")) {
-            filename = `BC_ACHAT_${rec}_${nomClient}_${dateFact}.txt`;
-        } else {
-            filename = `FA_ACHAT_${rec}_${nomClient}_${dateFact}.txt`;
+    // ✅ Encodage Latin-1 (Windows-1252) + CRLF pour compatibilité SAGE directe
+    function encoderLatin1(str) {
+        const buf = new Uint8Array(str.length);
+        for (let i = 0; i < str.length; i++) {
+            buf[i] = str.charCodeAt(i) & 0xff;
         }
-
-        const blob = new Blob([content], { type: "text/plain" });
-        const formData = new FormData();
-        formData.append("file", blob, filename);
-        formData.append("rec", rec);
-        formData.append("recs", recs);
-        formData.append("nom_client", nomClient);
-        formData.append("date_fact", dateFact);
-        formData.append("tsena", tsenaFinal);
-        
-        blob.text().then(text => {
-            console.log("📄 Contenu du blob :", text); // doit afficher tes données
-        });
-
-        console.log("📤 Envoi avec tsena:", tsenaFinal);
+        return new Blob([buf], { type: "text/plain" });
     }
 
-    // ✅ Récupérer tsena puis envoyer
-    const valeur = document.getElementById('tsena');
-    const code = valeur.textContent.trim();
-
+    const content = lines.join("\r\n") + "\r\n";
+    
     const tsenaFinal = (recup_tsena || "").replace('LOCCA ', '');
-    envoyerFichier(tsenaFinal);
 
     let filename = '';
     if (recs.toLowerCase().includes("vente")) {
@@ -3017,14 +2985,17 @@ function exporterTXT() {
         filename = `FA_ACHAT_${rec}_${nomClient}_${dateFact}.txt`;
     }
 
-    const blob = new Blob([content], { type: "text/plain" });
+    const blob = encoderLatin1(content);
     const formData = new FormData();
     formData.append("file", blob, filename);
     formData.append("rec", rec);
     formData.append("recs", recs);
     formData.append("nom_client", nomClient);
     formData.append("date_fact", dateFact);
-    formData.append("tsena", tsenaFinal); // ✅ valeur correcte ici
+    formData.append("tsena", tsenaFinal);
+
+    console.log("📤 Envoi avec tsena:", tsenaFinal);
+    blob.text().then(text => console.log("📄 Contenu du blob :", text));
 
     const BASE_URL = window.location.origin;
     const url = `${BASE_URL}/upload`;
@@ -3033,11 +3004,10 @@ function exporterTXT() {
         method: "POST",
         body: formData
     })
-    .then(response => response.json())   // ← conversion en JSON obligatoire
+    .then(response => response.json())
     .then(data => {
         if (data.success) {
-            console.log("✅ Upload OK :", data.link);
-            window.open(data.link, "_blank");
+            console.log("✅ Upload OK");
         } else {
             console.error("❌ Upload échoué :", data.error);
             alert("Erreur upload : " + data.error);

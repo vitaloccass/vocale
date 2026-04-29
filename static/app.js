@@ -523,7 +523,7 @@ function afficherListeFiltre(articles) {
                 const puBrut = parseFloat(targetRow.children[9].innerText); // valeur numérique du PU
                 const remiseVal = parseFloat(targetRow.children[10].innerText); // valeur numérique de la remise
 
-                const puCalcule = puBrut-((puBrut * remiseVal)/100);
+                const puCalcule = puBrut
                 console.log("PU calculé :", puCalcule);
                 tdpu.innerText = puCalcule;
 
@@ -767,7 +767,7 @@ function selectionnerArticleParNumero(numero) {
             const puBrut = parseFloat(targetRow.children[9].innerText); // valeur numérique du PU
             const remiseVal = parseFloat(targetRow.children[10].innerText); // valeur numérique de la remise
 
-            const puCalcule = puBrut-((puBrut * remiseVal)/100);
+            const puCalcule = puBrut
             console.log("PU calculé :", puCalcule);
             tdpu.innerText = puCalcule;
 
@@ -993,7 +993,7 @@ function selectionnerFournisseurParNumero(numero) {
         const puBrut = parseFloat(targetRow.children[9].innerText); // valeur numérique du PU
         const remiseVal = parseFloat(targetRow.children[10].innerText); // valeur numérique de la remise
 
-        const puCalcule = puBrut-((puBrut * remiseVal)/100);
+        const puCalcule = puBrut
         console.log("PU calculé :", puCalcule);
         tdpu.innerText = puCalcule;
 
@@ -1248,7 +1248,7 @@ function afficherFournisseurFiltre(fournisseur) {
                 const puBrut = parseFloat(targetRow.children[9].innerText); // valeur numérique du PU
                 const remiseVal = parseFloat(targetRow.children[10].innerText); // valeur numérique de la remise
 
-                const puCalcule = puBrut-((puBrut * remiseVal)/100); // calcul du prix remisé
+                const puCalcule = puBrut // calcul du prix remisé
                 console.log("PU calculé :", puCalcule);
                 tdpu.innerText = puCalcule;
 

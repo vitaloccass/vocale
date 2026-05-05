@@ -506,7 +506,7 @@ function afficherListeFiltre(articles) {
                 tdremise.innerText = remise;
 
                 const fournisseursSpeciaux = [
-                'LOCA001','LOCB001','LOCJ003','LOCP001','LOCP016','LOCU001'
+                'LOCA001','LOCB001','LOCJ003','LOCP016','LOCU001'
                 ];
 
                 let code_fournisseur = targetRow.children[4].innerText.trim(); 
@@ -750,7 +750,7 @@ function selectionnerArticleParNumero(numero) {
             tdremise.innerText = remise;
 
             const fournisseursSpeciaux = [
-            'LOCA001','LOCB001','LOCJ003','LOCP001','LOCP016','LOCU001'
+            'LOCA001','LOCB001','LOCJ003','LOCP016','LOCU001'
             ];
 
             let code_fournisseur = targetRow.children[4].innerText.trim(); 

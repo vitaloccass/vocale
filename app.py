@@ -22,6 +22,16 @@ from email.mime.base import MIMEBase
 from email import encoders
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
+import unicodedata
+
+def normalize(text):
+    """Minuscules + suppression des accents + nettoyage apostrophes"""
+    text = text.strip().lower()
+    text = text.replace("\u2019", "'").replace("\u2018", "'")  # apostrophes typographiques
+    # Décompose les caractères accentués (é → e + ́) puis supprime les diacritiques
+    text = unicodedata.normalize("NFD", text)
+    text = "".join(c for c in text if unicodedata.category(c) != "Mn")
+    return text
 
 
 app = Flask(__name__)
@@ -608,11 +618,22 @@ def get_stock():
 @app.route('/get_code/<path:designation>', methods=['GET'])
 def get_code(designation):
     try:
-        # Normalisation côté Python
-        designation_normalisee = designation.strip().lower().replace("'", "'").replace("'", "'")
+        designation_normalisee = normalize(designation)
 
+        # Côté SQL : on applique la même normalisation via REPLACE chaînés
+        # SQLite ne gère pas les accents dans LOWER(), donc on les retire aussi en SQL
         rows = _turso_execute(
-            "SELECT reference FROM correspondance_article WHERE TRIM(LOWER(designation)) = ?",
+            """
+            SELECT reference FROM correspondance_article
+            WHERE TRIM(LOWER(
+                REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
+                REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
+                    designation,
+                'é','e'),'è','e'),'ê','e'),'ë','e'),
+                'à','a'),'â','a'),'ä','a'),
+                'ù','u'),'û','u'),'ü','u')
+            )) = ?
+            """,
             (designation_normalisee,)
         )
 
@@ -620,7 +641,6 @@ def get_code(designation):
             return jsonify({"error": "Article non trouvé"}), 404
 
         references = list({str(row["reference"]).strip() for row in rows if row["reference"]})
-
         return jsonify({"list": references}), 200
 
     except Exception as e:

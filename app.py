@@ -620,8 +620,6 @@ def get_code(designation):
     try:
         designation_normalisee = normalize(designation)
 
-        # Côté SQL : on applique la même normalisation via REPLACE chaînés
-        # SQLite ne gère pas les accents dans LOWER(), donc on les retire aussi en SQL
         rows = _turso_execute(
             """
             SELECT reference FROM correspondance_article

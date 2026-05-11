@@ -804,7 +804,6 @@ function recuperer_code(designation, callback) {
             return response.json();
         })
         .then(data => {
-            alert(data);
             console.log("Réponse API:", data);
 
             if (data.list && data.list.length > 0) {

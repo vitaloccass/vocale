@@ -791,7 +791,7 @@ function selectionnerArticleParNumero(numero) {
 
 function recuperer_code(designation, callback) {
     const BASE_URL = window.location.origin;
-    alert(designation);
+    
     fetch(`${BASE_URL}/get_code/${encodeURIComponent(designation)}`)
         .then(response => {
             if (!response.ok) {
@@ -804,7 +804,9 @@ function recuperer_code(designation, callback) {
             return response.json();
         })
         .then(data => {
+            alert(data);
             console.log("Réponse API:", data);
+
             if (data.list && data.list.length > 0) {
                 callback(data.list[0]);
             } else {

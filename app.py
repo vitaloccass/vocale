@@ -621,19 +621,26 @@ def get_code(designation):
         designation_normalisee = normalize(designation)
 
         rows = _turso_execute(
-            """
-            SELECT reference FROM correspondance_article
-            WHERE TRIM(LOWER(
-                REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
-                REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
-                    designation,
-                'é','e'),'è','e'),'ê','e'),'ë','e'),
-                'à','a'),'â','a'),'ä','a'),
-                'ù','u'),'û','u'),'ü','u')
-            )) = ?
-            """,
-            (designation_normalisee,)
-        )
+        """
+        SELECT reference FROM correspondance_article
+        WHERE TRIM(LOWER(
+            REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
+            REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
+            REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
+            REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(
+                designation,
+            'é','e'),'è','e'),'ê','e'),'ë','e'),
+            'à','a'),'â','a'),'ä','a'),
+            'ù','u'),'û','u'),'ü','u'),
+            'î','i'),'ï','i'),
+            'ô','o'),'œ','oe'),
+            'É','e'),'È','e'),'Ê','e'),
+            'À','a'),'Â','a'),
+            'Î','i')
+        )) = ?
+        """,
+        (designation_normalisee,)
+    )
 
         if not rows:
             return jsonify({"error": "Article non trouvé"}), 404

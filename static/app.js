@@ -2974,7 +2974,6 @@ function exporterTXT() {
         return new Blob([buf], { type: "text/plain" });
     }
 
-    const content = lines.join("\r\n") + "\r\n";
     
     const tsenaFinal = (recup_tsena || "").replace('LOCCA ', '');
 

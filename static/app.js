@@ -2942,6 +2942,137 @@ function exporterTXT() {
             let ref      = tds[6].innerText.trim();
             let article  = tds[7].innerText.trim();
             let qte      = tds[8].innerText.trim();
+            let prix     = tds[9]?.innerText?.trim() || '0';
+
+            function toNumber(val) {
+                return Number(val.replace(/\s/g, '').replace(',', '.')) || 0;
+            }
+
+            let code_fournisseur = tds[4].innerText.trim();
+            let remise   = tds[10].innerText.trim();
+            let depot    = rec_depot;
+            let affaire  = rec_affaire;
+            let prixNum  = toNumber(prix);
+
+            if (recs.toLowerCase().includes("vente")) {
+                lines.push(`1\t6\t${numFact}\t${dateFact}\t${tsena}\t${nomClient}\t1\t${ref}\t${article}\t${prixNum}\t${qte}\t${remise}\t${depot}\t${affaire}\t${rec_souche}`);
+            } else if (recs.toLowerCase().includes("bc")) {
+                lines.push(`1\t12\t${numFact}\t${dateFact}\t${code_fournisseur}\t${nomClient}\t1\t${ref}\t${article}\t${prixNum}\t${qte}\t${remise}\t${depot}\t${affaire}\t${rec_souche}`);
+            } else {
+                lines.push(`1\t16\t${numFact}\t${dateFact}\t${code_fournisseur}\t${nomClient}\t1\t${ref}\t${article}\t${prixNum}\t${qte}\t${remise}\t${depot}\t${affaire}\t${rec_souche}`);
+            }
+        }
+    });
+
+    const content = lines.join("\r\n") + "\r\n";
+    const tsenaFinal = (recup_tsena || "").replace('LOCCA ', '');
+    const now = new Date();
+    let heure = String(now.getHours()).padStart(2, '0');
+    let minute = String(now.getMinutes()).padStart(2, '0');
+    let seconde = String(now.getSeconds()).padStart(2, '0');
+
+    // 📁 Nom du fichier
+    let filename = '';
+    if (recs.toLowerCase().includes("vente")) {
+        filename = `VENTE_${rec}_${nomClient}_${dateFact}_${heure}_${minute}_${seconde}.txt`;
+    } else if (recs.toLowerCase().includes("bc")) {
+        filename = `BC_ACHAT_${rec}_${nomClient}_${dateFact}_${heure}_${minute}_${seconde}.txt`;
+    } else {
+        filename = `FA_ACHAT_${rec}_${nomClient}_${dateFact}_${heure}_${minute}_${seconde}.txt`;
+    }
+
+    // 🔧 CONFIG GITHUB — à adapter
+    const GITHUB_TOKEN  = "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";   // ⚠️ Token GitHub (scope: repo)
+    const GITHUB_OWNER  = "vitalocass";             // Ton nom d'utilisateur GitHub
+    const GITHUB_REPO   = "vocale";                 // Ton dépôt
+    const GITHUB_BRANCH = "main";                        // Branche cible
+    const GITHUB_FOLDER = "exports";                     // Dossier dans le dépôt (optionnel)
+
+    const today = new Date().toISOString().split("T")[0]; // "2026-06-12"
+    const filePath = GITHUB_FOLDER 
+    ? `${GITHUB_FOLDER}/${today}/${filename}` 
+    : `${today}/${lblMagasin}/${filename}`;
+
+    const apiUrl = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${filePath}`;
+
+    // ✅ Encodage Base64 (requis par l'API GitHub)
+    const base64Content = btoa(unescape(encodeURIComponent(content)));
+
+    // 🔍 Vérifier si le fichier existe déjà (pour récupérer le SHA)
+    let sha = undefined;
+    try {
+        const check = await fetch(apiUrl, {
+            headers: {
+                "Authorization": `Bearer ${GITHUB_TOKEN}`,
+                "Accept": "application/vnd.github+json"
+            }
+        });
+        if (check.ok) {
+            const existing = await check.json();
+            sha = existing.sha; // Nécessaire pour mettre à jour un fichier existant
+        }
+    } catch (e) {
+        // Fichier n'existe pas encore, pas de problème
+    }
+
+    // 📤 Envoi vers GitHub
+    const body = {
+        message: `Export ${filename}`,
+        content: base64Content,
+        branch: GITHUB_BRANCH,
+        ...(sha && { sha }) // Inclure le SHA seulement si le fichier existe déjà
+    };
+
+    try {
+        const response = await fetch(apiUrl, {
+            method: "PUT",
+            headers: {
+                "Authorization": `Bearer ${GITHUB_TOKEN}`,
+                "Accept": "application/vnd.github+json",
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify(body)
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            console.log("✅ Fichier envoyé sur GitHub :", data.content?.html_url);
+            alert(`✅ Fichier envoyé : ${data.content?.html_url}`);
+        } else {
+            console.error("❌ Erreur GitHub :", data.message);
+            alert("Erreur GitHub : " + data.message);
+        }
+    } catch (err) {
+        console.error("❌ Erreur fetch :", err);
+        alert("Erreur fetch : " + err.message);
+    }
+
+    reinitialiser();
+}
+
+/*function exporterTXT() {
+    let trs = document.querySelectorAll("#table-body tr");
+    let lines = [];
+
+    const lblMagasin = document.querySelector(".lblmagasin");
+    const lbltype = document.querySelector(".lbltype");
+
+    const rec = lblMagasin ? lblMagasin.innerText.trim() : "unknown";
+    const recs = lbltype ? lbltype.textContent.trim() : "unknown";
+    let nomClient = "";
+    let dateFact = "";
+
+    trs.forEach(tr => {
+        let tds = tr.querySelectorAll("td");
+        if (tds[3].innerText.trim() !== "") {
+            let numFact  = tds[0].innerText.trim();
+            dateFact     = tds[1].innerText.trim().split('-').reverse().join('/');
+            nomClient    = tds[5].innerText.trim();
+            let tsena    = tds[13].innerText.trim();
+            let ref      = tds[6].innerText.trim();
+            let article  = tds[7].innerText.trim();
+            let qte      = tds[8].innerText.trim();
 
             let prix = tds[9]?.innerText?.trim() || '0';
 
@@ -3021,7 +3152,7 @@ function exporterTXT() {
     });
 
     reinitialiser();
-}
+}*/
 
 
 // ===================== AJOUT ARTICLE (Modal) =====================

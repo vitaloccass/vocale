@@ -2978,9 +2978,11 @@ function exporterTXT() {
     const content = lines.join("\r\n") + "\r\n";
     const tsenaFinal = (recup_tsena || "").replace('LOCCA ', '');
     const now = new Date();
-    const heure = String(now.getHours()).padStart(2, '0');
-    const minute = String(now.getMinutes()).padStart(2, '0');
-    const seconde = String(now.getSeconds()).padStart(2, '0');
+    let heure = String(now.getHours()).padStart(2, '0');
+    let minute = String(now.getMinutes()).padStart(2, '0');
+    let seconde = String(now.getSeconds()).padStart(2, '0');
+
+    alert(heure+":"+minute+":"+seconde);
 
     // 📁 Nom du fichier
     let filename = '';

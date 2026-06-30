@@ -22,6 +22,7 @@ from email.mime.base import MIMEBase
 from email import encoders
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
+from datetime import datetime
 import unicodedata
 
 def normalize(text):
@@ -473,14 +474,18 @@ def upload_file():
         def clean(s):
             return "".join(c if c.isalnum() or c in (' ', '-', '_') else "_" for c in s)
 
+        now = datetime.now()
+        heure = now.strftime('%H')
+        minute = now.strftime('%M')
+        seconde = now.strftime('%S')
+
         if "vente" in recs.lower():
-            filename = f"VENTE_{clean(rec)}_{clean(nom_client)}_{clean(date_fact)}.txt"
+            filename = f"VENTE_{clean(rec)}_{clean(nom_client)}_{clean(date_fact)}_{heure}_{minute}_{seconde}.txt"
         else:
             if "BC" in (recs):
-                filename = f"BC_ACHAT_{clean(rec)}_{clean(nom_client)}_{clean(date_fact)}.txt"
+                filename = f"BC_ACHAT_{clean(rec)}_{clean(nom_client)}_{clean(date_fact)}_{heure}_{minute}_{seconde}.txt"
             else:
-                filename = f"FA_ACHAT_{clean(rec)}_{clean(nom_client)}_{clean(date_fact)}.txt"
-
+                filename = f"FA_ACHAT_{clean(rec)}_{clean(nom_client)}_{clean(date_fact)}_{heure}_{minute}_{seconde}.txt"
         
         print(f"\n{'='*60}")
         print(f"📝 Nouveau fichier: {filename}")

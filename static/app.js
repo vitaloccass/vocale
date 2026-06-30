@@ -2992,8 +2992,6 @@ function exporterTXT() {
         filename = `FA_ACHAT_${rec}_${nomClient}_${dateFact}_${heure}_${minute}_${seconde}.txt`;
     }
 
-    alert(filename);
-
     const blob = encoderLatin1(content);
     const formData = new FormData();
     formData.append("file", blob, filename);

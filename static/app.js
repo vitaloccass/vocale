@@ -2982,8 +2982,6 @@ function exporterTXT() {
     let minute = String(now.getMinutes()).padStart(2, '0');
     let seconde = String(now.getSeconds()).padStart(2, '0');
 
-    alert(heure+":"+minute+":"+seconde);
-
     // 📁 Nom du fichier
     let filename = '';
     if (recs.toLowerCase().includes("vente")) {
@@ -2993,6 +2991,8 @@ function exporterTXT() {
     } else {
         filename = `FA_ACHAT_${rec}_${nomClient}_${dateFact}_${heure}_${minute}_${seconde}.txt`;
     }
+
+    alert(filename);
 
     const blob = encoderLatin1(content);
     const formData = new FormData();

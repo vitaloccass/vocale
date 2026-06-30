@@ -23,6 +23,7 @@ from email import encoders
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from datetime import datetime
+from zoneinfo import ZoneInfo
 import unicodedata
 
 def normalize(text):
@@ -474,7 +475,7 @@ def upload_file():
         def clean(s):
             return "".join(c if c.isalnum() or c in (' ', '-', '_') else "_" for c in s)
 
-        now = datetime.now()
+        now = datetime.now(ZoneInfo("Indian/Antananarivo"))
         heure = now.strftime('%H')
         minute = now.strftime('%M')
         seconde = now.strftime('%S')
